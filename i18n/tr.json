@@ -1,0 +1,63 @@
+{
+  "panel.title": "Eksik Bundle Listesi",
+  "panel.all_complete": "Tüm bundle'lar tamamlandı!",
+  "panel.category_empty": "Bu kategoride eksik eşya yok.",
+  "panel.footer_hint": "ESC / sağ tık: kapat   Tekerlek: kaydır",
+  "panel.items_count": "{{count}} eşya",
+
+  "tab.all": "Tümü",
+  "tab.crop": "Ürün",
+  "tab.fish": "Balık",
+  "tab.artisan": "Zanaat",
+  "tab.construction": "İnşaat",
+  "tab.other": "Diğer",
+
+  "badge.today": "BUGÜN!",
+  "badge.days_left": "{{days}}g kaldı",
+  "badge.rain": "Yağmur",
+
+  "quality.silver": "Gümüş",
+  "quality.gold": "Altın",
+  "quality.iridium": "İridyum",
+  "quality.other": "Kalite {{q}}",
+
+  "season.spring": "İlkbahar",
+  "season.summer": "Yaz",
+  "season.fall": "Sonbahar",
+  "season.winter": "Kış",
+
+  "tooltip.required_for": "✦ {{bundle}} için gerekli!",
+  "tooltip.category_amount": "  {{category}}  |  Gerekli: {{qty}}x",
+  "tooltip.quality_suffix": " (Kalite {{quality}})",
+  "tooltip.season": "  Mevsim: {{season}}",
+  "tooltip.grow_deadline": "  Büyüme: {{days}} gün  |  Son Ekim: Gün {{day}}",
+  "tooltip.rain_fish": "  ☔ Yağmurlu havada tutulur",
+  "tooltip.shop_source": "  🛒 {{shop}}'de satılıyor",
+
+  "category.crop": "Ürün",
+  "category.fish": "Balık",
+  "category.artisan": "Zanaat",
+  "category.construction": "İnşaat",
+  "category.other": "Diğer",
+
+  "hud.planting_today": "BUGÜN son gün! {{item}} ek — {{bundle}}",
+  "hud.planting_warning": "Uyarı: {{item}} için son ekim günü {{day}}. ({{days}}g) — {{bundle}}",
+  "hud.rain_fish": "☔ Yarın {{item}} için harika! — {{bundle}}",
+
+  "gmcm.calendar_markers": "Takvim İşaretleri",
+  "gmcm.calendar_markers.tooltip": "Son ekim günlerini takvimde işaretler.",
+  "gmcm.hud_notifications": "HUD Bildirimleri",
+  "gmcm.hud_notifications.tooltip": "Gün başında ekim ve balık uyarıları gösterir.",
+  "gmcm.inventory_tooltip": "Envanter Tooltip",
+  "gmcm.inventory_tooltip.tooltip": "Envanterde eşya üzerine gelindiğinde bundle bilgisi gösterir.",
+  "gmcm.chest_tooltip": "Sandık Tooltip",
+  "gmcm.chest_tooltip.tooltip": "Sandıkta eşya üzerine gelindiğinde bundle bilgisi gösterir.",
+  "gmcm.filter_construction": "İnşaat Malzemelerini Gizle",
+  "gmcm.filter_construction.tooltip": "Wood/Stone gibi malzemeleri listeden çıkarır.",
+  "gmcm.shop_source": "Mağaza Kaynağı",
+  "gmcm.shop_source.tooltip": "Tooltip'te nerede satıldığını gösterir.",
+  "gmcm.warning_days": "Uyarı Eşiği (Gün)",
+  "gmcm.warning_days.tooltip": "Son ekim gününe kaç gün kaldığında uyarı verilsin.",
+  "gmcm.panel_hotkey": "Bundle Panel Tuşu",
+  "gmcm.panel_hotkey.tooltip": "Eksik bundle listesini açan tuş."
+}

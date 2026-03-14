@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>SeasonPlanner</AssemblyName>
+    <RootNamespace>SeasonPlanner</RootNamespace>
+    <Version>1.0.0</Version>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+
+    <!-- Stardew Valley kurulum klasörü -->
+    <GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
+
+    <!-- Derleme çıktısını temizler; SMAPI deploy klasörüne kopyalar -->
+    <EnableModDeploy>true</EnableModDeploy>
+    <EnableModZip>true</EnableModZip>
+
+    <!-- Uyarıları hata olarak işle (isteğe bağlı, kalite için önerilir) -->
+    <!-- <TreatWarningsAsErrors>true</TreatWarningsAsErrors> -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- SMAPI mod build araçları (en güncel kararlı sürüm) -->
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.2" />
+
+    <!-- Harmony: Patch'ler için (ModBuildConfig zaten dahil eder, explicit referans opsiyonel) -->
+    <PackageReference Include="Lib.Harmony" Version="2.3.3" />
+  </ItemGroup>
+
+  <!-- manifest.json'ı çıktı klasörüne kopyala -->
+  <ItemGroup>
+    <None Update="manifest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\**\*" Condition="Exists('assets')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

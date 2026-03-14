@@ -1,0 +1,25 @@
+using System;
+using StardewModdingAPI;
+
+namespace SeasonPlanner;
+
+public interface IGenericModConfigMenuApi
+{
+    void Register(IManifest mod, Action reset, Action save, bool titleScreenOnly = false);
+
+    void AddBoolOption(IManifest mod,
+        Func<bool> getValue, Action<bool> setValue,
+        Func<string> name, Func<string>? tooltip = null,
+        string? fieldId = null);
+
+    void AddNumberOption(IManifest mod,
+        Func<int> getValue, Action<int> setValue,
+        Func<string> name, Func<string>? tooltip = null,
+        int? min = null, int? max = null, int? interval = null,
+        string? fieldId = null);
+
+    void AddKeybind(IManifest mod,
+        Func<SButton> getValue, Action<SButton> setValue,
+        Func<string> name, Func<string>? tooltip = null,
+        string? fieldId = null);
+}

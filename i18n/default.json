@@ -1,0 +1,63 @@
+{
+  "panel.title": "Missing Bundle List",
+  "panel.all_complete": "All bundles completed!",
+  "panel.category_empty": "No missing items in this category.",
+  "panel.footer_hint": "ESC / right-click: close   Scroll: navigate",
+  "panel.items_count": "{{count}} items",
+
+  "tab.all": "All",
+  "tab.crop": "Crop",
+  "tab.fish": "Fish",
+  "tab.artisan": "Artisan",
+  "tab.construction": "Build",
+  "tab.other": "Other",
+
+  "badge.today": "TODAY!",
+  "badge.days_left": "{{days}}d left",
+  "badge.rain": "Rain",
+
+  "quality.silver": "Silver",
+  "quality.gold": "Gold",
+  "quality.iridium": "Iridium",
+  "quality.other": "Quality {{q}}",
+
+  "season.spring": "Spring",
+  "season.summer": "Summer",
+  "season.fall": "Fall",
+  "season.winter": "Winter",
+
+  "tooltip.required_for": "✦ Required for {{bundle}}!",
+  "tooltip.category_amount": "  {{category}}  |  Need: {{qty}}x",
+  "tooltip.quality_suffix": " ({{quality}})",
+  "tooltip.season": "  Season: {{season}}",
+  "tooltip.grow_deadline": "  Grow: {{days}}d  |  Last Plant: Day {{day}}",
+  "tooltip.rain_fish": "  ☔ Caught in rainy weather",
+  "tooltip.shop_source": "  🛒 Sold at {{shop}}",
+
+  "category.crop": "Crop",
+  "category.fish": "Fish",
+  "category.artisan": "Artisan",
+  "category.construction": "Build",
+  "category.other": "Other",
+
+  "hud.planting_today": "TODAY is the last day! Plant {{item}} — {{bundle}}",
+  "hud.planting_warning": "Warning: Last planting day for {{item}} is day {{day}}. ({{days}}d left) — {{bundle}}",
+  "hud.rain_fish": "☔ Tomorrow is great for {{item}}! — {{bundle}}",
+
+  "gmcm.calendar_markers": "Calendar Markers",
+  "gmcm.calendar_markers.tooltip": "Mark last planting days on the calendar.",
+  "gmcm.hud_notifications": "HUD Notifications",
+  "gmcm.hud_notifications.tooltip": "Show planting and fish alerts at day start.",
+  "gmcm.inventory_tooltip": "Inventory Tooltip",
+  "gmcm.inventory_tooltip.tooltip": "Show bundle info when hovering items in inventory.",
+  "gmcm.chest_tooltip": "Chest Tooltip",
+  "gmcm.chest_tooltip.tooltip": "Show bundle info when hovering items in chests.",
+  "gmcm.filter_construction": "Hide Construction Items",
+  "gmcm.filter_construction.tooltip": "Remove Wood/Stone etc. from the list.",
+  "gmcm.shop_source": "Shop Source",
+  "gmcm.shop_source.tooltip": "Show where to buy items in tooltips.",
+  "gmcm.warning_days": "Warning Threshold (Days)",
+  "gmcm.warning_days.tooltip": "How many days before the deadline to show a warning.",
+  "gmcm.panel_hotkey": "Bundle Panel Key",
+  "gmcm.panel_hotkey.tooltip": "Key to open the missing bundle list."
+}
