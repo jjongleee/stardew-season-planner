@@ -59,5 +59,7 @@
   "gmcm.warning_days": "Warning Threshold (Days)",
   "gmcm.warning_days.tooltip": "How many days before the deadline to show a warning.",
   "gmcm.panel_hotkey": "Bundle Panel Key",
-  "gmcm.panel_hotkey.tooltip": "Key to open the missing bundle list."
+  "gmcm.panel_hotkey.tooltip": "Key to open the missing bundle list.",
+  "gmcm.remember_panel_position": "Remember Panel Position",
+  "gmcm.remember_panel_position.tooltip": "Keep the bundle panel in the same place between sessions."
 }

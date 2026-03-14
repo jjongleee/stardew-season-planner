@@ -108,6 +108,42 @@ internal static class TooltipHelper
         // Solda yer yoksa sağa geç
         if (x < 4) x = mx + 20;
 
+        // If a menu is open, try to avoid overlapping it (especially when menus stack).
+        if (Game1.activeClickableMenu is { } menu)
+        {
+            var menuRect = new Rectangle(menu.xPositionOnScreen, menu.yPositionOnScreen, menu.width, menu.height);
+            var tooltipRect = new Rectangle(x, y, width, height);
+
+            if (tooltipRect.Intersects(menuRect))
+            {
+                // Prefer placing tooltip to the right of the menu if possible.
+                int rightX = menu.xPositionOnScreen + menu.width + 10;
+                if (rightX + width < Game1.uiViewport.Width)
+                {
+                    x = rightX;
+                    y = menu.yPositionOnScreen + 10;
+                }
+                else
+                {
+                    // Otherwise place tooltip to the left of the menu.
+                    int leftX = menu.xPositionOnScreen - width - 10;
+                    if (leftX > 0)
+                    {
+                        x = leftX;
+                        y = menu.yPositionOnScreen + 10;
+                    }
+                    else
+                    {
+                        // Fall back to top-right corner.
+                        x = Game1.uiViewport.Width - width - 10;
+                        y = 10;
+                    }
+                }
+
+                tooltipRect = new Rectangle(x, y, width, height);
+            }
+        }
+
         // Ekran alt sınırı
         if (y + height > Game1.uiViewport.Height)
             y = Game1.uiViewport.Height - height - 4;

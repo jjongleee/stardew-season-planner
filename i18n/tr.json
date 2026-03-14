@@ -59,5 +59,7 @@
   "gmcm.warning_days": "Uyarı Eşiği (Gün)",
   "gmcm.warning_days.tooltip": "Son ekim gününe kaç gün kaldığında uyarı verilsin.",
   "gmcm.panel_hotkey": "Bundle Panel Tuşu",
-  "gmcm.panel_hotkey.tooltip": "Eksik bundle listesini açan tuş."
+  "gmcm.panel_hotkey.tooltip": "Eksik bundle listesini açan tuş.",
+  "gmcm.remember_panel_position": "Panel konumunu hatırla",
+  "gmcm.remember_panel_position.tooltip": "Panelin konumunu oturumlar arasında kaydeder."
 }

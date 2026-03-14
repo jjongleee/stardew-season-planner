@@ -4,6 +4,10 @@
 >
 > **TR:** Mevsimlere göre paket ilerlemesini ve kaynak toplama planlamanıza yardımcı olan bir SMAPI modu.
 
+[![SMAPI](https://img.shields.io/badge/SMAPI-5%2B-2b8a3e)](https://smapi.io)
+[![Stardew Valley](https://img.shields.io/badge/Stardew%20Valley-1.6%2B-8a4b2b)](https://www.stardewvalley.net/)
+[![License](https://img.shields.io/badge/License-MIT-1f6feb)](LICENSE)
+
 ---
 
 ## 📌 Overview / Genel Bakış
@@ -34,10 +38,42 @@ Stardew Season Planner (SSP), oyun içindeki paket ilerlemenizi tarayan ve mevsi
 2. Copy the `SeasonPlanner` folder into your Stardew Valley `Mods/` directory.
 3. Launch Stardew Valley via SMAPI.
 
+### Local Build Setup (GamePath)
+To keep personal paths private, set your game folder locally:
+
+1. Copy [Directory.Build.props.example](Directory.Build.props.example) to [Directory.Build.props](Directory.Build.props).
+2. Edit the `<GamePath>` value inside [Directory.Build.props](Directory.Build.props).
+
+This local file is ignored by git.
+
+### Local Build Setup (GamePath)
+To avoid committing personal paths, set your game folder locally:
+
+1. Copy `Directory.Build.props.example` to `Directory.Build.props`.
+2. Edit `<GamePath>` in `Directory.Build.props` to your Stardew Valley install path.
+
+`Directory.Build.props` is ignored by git and stays private.
+
 ### Türkçe
 1. [SMAPI](https://smapi.io) kurun (gereklidir).
 2. `SeasonPlanner` klasörünü Stardew Valley `Mods/` dizinine kopyalayın.
 3. Stardew Valley'i SMAPI ile başlatın.
+
+### Yerel Derleme Ayarı (GamePath)
+Kişisel yolları gizli tutmak için oyun klasörünü yerelde ayarlayın:
+
+1. [Directory.Build.props.example](Directory.Build.props.example) dosyasını [Directory.Build.props](Directory.Build.props) olarak kopyalayın.
+2. [Directory.Build.props](Directory.Build.props) içindeki `<GamePath>` değerini düzenleyin.
+
+Bu yerel dosya git tarafından yok sayılır.
+
+### Yerel Derleme Ayarı (GamePath)
+Kişisel yolları repo'ya koymamak için oyun klasörünü yerelde ayarlayın:
+
+1. `Directory.Build.props.example` dosyasını `Directory.Build.props` olarak kopyalayın.
+2. `Directory.Build.props` içindeki `<GamePath>` değerini kendi kurulum yolunuzla değiştirin.
+
+`Directory.Build.props` git tarafından yok sayılır ve gizli kalır.
 
 ---
 
@@ -83,4 +119,12 @@ Contributions are welcome! Feel free to fork, fix, and submit a PR. Please keep:
 
 ## 📄 License / Lisans
 
-This project is provided as-is; include the license you prefer (MIT, CC0, etc.).
+MIT License. See [LICENSE](LICENSE).
+
+## 🧾 Changelog / Degisim Gunlugu
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
+
+## 🔐 Security / Guvenlik
+
+See [SECURITY.md](SECURITY.md) for reporting guidelines.

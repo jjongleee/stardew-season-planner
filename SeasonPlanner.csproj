@@ -8,22 +8,41 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
 
-    <!-- Stardew Valley kurulum klasörü -->
-    <GamePath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley</GamePath>
+    <!-- Stardew Valley installation folder.
+         This is intentionally left unset in source control to avoid leaking local paths.
+         Set it using one of these approaches:
+
+         1) Pass the property when building:
+            dotnet build -c Release -p:GamePath="C:\\Path\\To\\Stardew Valley"
+
+         2) Set an environment variable:
+            $env:GamePath = "C:\\Path\\To\\Stardew Valley"
+
+         3) Create a local MSBuild props file (recommended):
+            - Copy `Directory.Build.props.example` to `Directory.Build.props`
+            - Edit the `<GamePath>` value to your install location.
+
+         The actual `Directory.Build.props` file is not tracked by git (ignored) so
+         your local config stays private.
+    -->
 
     <!-- Derleme çıktısını temizler; SMAPI deploy klasörüne kopyalar -->
-    <EnableModDeploy>true</EnableModDeploy>
-    <EnableModZip>true</EnableModZip>
+    <!--
+      Only enable deployment/zip when the game path exists.
+      This prevents build failures on machines without Stardew Valley installed.
+    -->
+    <EnableModDeploy Condition="Exists('$(GamePath)')">true</EnableModDeploy>
+    <EnableModZip Condition="Exists('$(GamePath)')">true</EnableModZip>
 
     <!-- Uyarıları hata olarak işle (isteğe bağlı, kalite için önerilir) -->
     <!-- <TreatWarningsAsErrors>true</TreatWarningsAsErrors> -->
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- SMAPI mod build araçları (en güncel kararlı sürüm) -->
+    <!-- SMAPI mod build tools (required to resolve game/SMAPI references) -->
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.2" />
 
-    <!-- Harmony: Patch'ler için (ModBuildConfig zaten dahil eder, explicit referans opsiyonel) -->
+    <!-- Harmony: Patching library -->
     <PackageReference Include="Lib.Harmony" Version="2.3.3" />
   </ItemGroup>
 

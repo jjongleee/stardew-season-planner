@@ -83,17 +83,6 @@ public sealed class ModEntry : Mod
         CheckRainFishOpportunity(missing);
     }
 
-    private void OnMenuChanged(object? sender, MenuChangedEventArgs e)
-    {
-        if (e.NewMenu is StardewValley.Menus.InventoryPage
-         || e.NewMenu is StardewValley.Menus.GameMenu
-         || e.NewMenu is StardewValley.Menus.Billboard
-         || e.NewMenu is StardewValley.Menus.ItemGrabMenu)
-        {
-            PushDataToPatches();
-        }
-    }
-
     private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)
     {
         if (!Context.IsPlayerFree && Game1.activeClickableMenu is not BundlePanelMenu) return;
@@ -107,7 +96,24 @@ public sealed class ModEntry : Mod
 
         if (!Context.IsWorldReady) return;
         var missing = _scanner.GetMissingItems(_config.FilterConstructionItems);
-        Game1.activeClickableMenu = new BundlePanelMenu(missing);
+        Game1.activeClickableMenu = new BundlePanelMenu(missing, _config);
+    }
+
+    private void OnMenuChanged(object? sender, MenuChangedEventArgs e)
+    {
+        if (e.OldMenu is BundlePanelMenu oldPanel && _config.RememberPanelPosition)
+        {
+            oldPanel.SavePosition();
+            Helper.WriteConfig(_config);
+        }
+
+        if (e.NewMenu is StardewValley.Menus.InventoryPage
+         || e.NewMenu is StardewValley.Menus.GameMenu
+         || e.NewMenu is StardewValley.Menus.Billboard
+         || e.NewMenu is StardewValley.Menus.ItemGrabMenu)
+        {
+            PushDataToPatches();
+        }
     }
 
     private void PushDataToPatches(
@@ -201,5 +207,9 @@ public sealed class ModEntry : Mod
         gmcm.AddKeybind(ModManifest,
             () => _config.PanelHotkey, v => _config.PanelHotkey = v,
             () => I18n.GmcmPanelHotkey(), () => I18n.GmcmPanelHotkeyTooltip());
+
+        gmcm.AddBoolOption(ModManifest,
+            () => _config.RememberPanelPosition, v => _config.RememberPanelPosition = v,
+            () => I18n.GmcmRememberPanelPosition(), () => I18n.GmcmRememberPanelPositionTooltip());
     }
 }

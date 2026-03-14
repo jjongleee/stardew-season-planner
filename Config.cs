@@ -12,4 +12,9 @@ public sealed class ModConfig
     public bool    ShowShopSource          { get; set; } = true;
     public int     CalendarWarningDaysLeft { get; set; } = 7;
     public SButton PanelHotkey            { get; set; } = SButton.F5;
+
+    // Panel position persistence
+    public bool RememberPanelPosition { get; set; } = true;
+    public int  PanelX                { get; set; } = -1;
+    public int  PanelY                { get; set; } = -1;
 }

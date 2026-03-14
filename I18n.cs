@@ -101,4 +101,6 @@ internal static class I18n
     public static string GmcmWarningDaysTooltip()        => _t.Get("gmcm.warning_days.tooltip");
     public static string GmcmPanelHotkey()               => _t.Get("gmcm.panel_hotkey");
     public static string GmcmPanelHotkeyTooltip()        => _t.Get("gmcm.panel_hotkey.tooltip");
+    public static string GmcmRememberPanelPosition()     => _t.Get("gmcm.remember_panel_position");
+    public static string GmcmRememberPanelPositionTooltip() => _t.Get("gmcm.remember_panel_position.tooltip");
 }

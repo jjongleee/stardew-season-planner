@@ -1,6 +1,7 @@
 # Build outputs
 /bin/
 /obj/
+*.zip
 
 # Visual Studio files
 *.user
@@ -27,6 +28,7 @@ packages/
 *.tmp
 *.log
 *.bak
+SMAPI-internal/
 
 # OS generated files
 .DS_Store
@@ -35,6 +37,7 @@ Thumbs.db
 # Local configuration
 local.settings.json
 appsettings.Development.json
+Directory.Build.props
 
 # Ignore generated files
 **/obj/**

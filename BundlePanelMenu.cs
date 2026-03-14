@@ -68,22 +68,35 @@ public sealed class BundlePanelMenu : IClickableMenu
     private List<BundleItem> _vis = new();
 
     // ── Koordinatlar (constructor'da hesaplanır) ──────────────────────────
-    private readonly int _px, _py;   // panel sol-üst
-    private readonly int _tcx, _tcy; // tab column sol-üst
-    private readonly int _lx, _ly;   // liste alanı sol-üst
-    private readonly int _lw, _lh;   // liste alanı boyutu
-    private readonly int _sbx;       // scroll bar x
+    private readonly ModConfig _config;
+
+    private int _px, _py;   // panel sol-üst
+    private int _tcx, _tcy; // tab column sol-üst
+    private int _lx, _ly;   // liste alanı sol-üst
+    private int _lw, _lh;   // liste alanı boyutu
+    private int _sbx;       // scroll bar x
+
+    // Dragging
+    private bool _dragging;
+    private int  _dragOffsetX;
+    private int  _dragOffsetY;
 
     private int VisRows => _lh / RowH;
     private int MaxScr  => Math.Max(0, _vis.Count - VisRows);
 
     // ─────────────────────────────────────────────────────────────────────
-    public BundlePanelMenu(IReadOnlyList<BundleItem> items)
-        : base((Game1.uiViewport.Width  - TW) / 2,
-               (Game1.uiViewport.Height - TH) / 2,
-               TW, TH)
+    public BundlePanelMenu(IReadOnlyList<BundleItem> items, ModConfig config)
+        : base(
+            config.RememberPanelPosition && config.PanelX >= 0
+                ? config.PanelX
+                : (Game1.uiViewport.Width  - TW) / 2,
+            config.RememberPanelPosition && config.PanelY >= 0
+                ? config.PanelY
+                : (Game1.uiViewport.Height - TH) / 2,
+            TW, TH)
     {
         _all = items;
+        _config = config;
 
         // Koordinatları bir kez hesapla
         _px  = xPositionOnScreen;
@@ -98,6 +111,13 @@ public sealed class BundlePanelMenu : IClickableMenu
 
         initialize(_px, _py, TW, TH);
         Refresh();
+    }
+
+    public void SavePosition()
+    {
+        if (!_config.RememberPanelPosition) return;
+        _config.PanelX = xPositionOnScreen;
+        _config.PanelY = yPositionOnScreen;
     }
 
     private void Refresh()
@@ -349,6 +369,14 @@ public sealed class BundlePanelMenu : IClickableMenu
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
     {
+        // Allow dragging by clicking in header area
+        if (y >= _py && y <= _py + HeadH && x >= _px && x <= _px + TW)
+        {
+            _dragging = true;
+            _dragOffsetX = x - _px;
+            _dragOffsetY = y - _py;
+        }
+
         for (int i = 0; i < Tabs.Length; i++)
         {
             int ty = _tcy + i * TabH;
@@ -370,6 +398,23 @@ public sealed class BundlePanelMenu : IClickableMenu
 
     public override void leftClickHeld(int x, int y)
     {
+        if (_dragging)
+        {
+            xPositionOnScreen = Math.Clamp(x - _dragOffsetX, 0, Game1.uiViewport.Width - TW);
+            yPositionOnScreen = Math.Clamp(y - _dragOffsetY, 0, Game1.uiViewport.Height - TH);
+
+            // Recalculate dependent coordinates
+            _px  = xPositionOnScreen;
+            _py  = yPositionOnScreen;
+            _tcx = _px + Pad;
+            _tcy = _py + HeadH;
+            _lx  = _px + TabW + Pad + Pad / 2;
+            _ly  = _py + HeadH + 4;
+            _sbx = _lx + _lw + 4;
+
+            return;
+        }
+
         if (!_drag) return;
         int th    = Math.Max(28, _lh * VisRows / Math.Max(1, _vis.Count));
         int range = _lh - th;
@@ -378,7 +423,11 @@ public sealed class BundlePanelMenu : IClickableMenu
                 _dragScr0 + (int)((float)(y - _dragY0) / range * MaxScr), 0, MaxScr);
     }
 
-    public override void releaseLeftClick(int x, int y) => _drag = false;
+    public override void releaseLeftClick(int x, int y)
+    {
+        _drag = false;
+        _dragging = false;
+    }
 
     public override void performHoverAction(int x, int y)
     {
@@ -392,7 +441,11 @@ public sealed class BundlePanelMenu : IClickableMenu
         base.performHoverAction(x, y);
     }
 
-    public override void receiveRightClick(int x, int y, bool playSound = true) => exitThisMenu();
+    public override void receiveRightClick(int x, int y, bool playSound = true)
+    {
+        _dragging = false;
+        exitThisMenu();
+    }
 
     public override void receiveKeyPress(Keys key)
     {
