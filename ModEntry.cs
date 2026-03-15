@@ -11,6 +11,7 @@ public sealed class ModEntry : Mod
     // Mod bu SMAPI major versiyonu ile yazıldı.
     // Farklı bir major gelirse Harmony patch'leri tehlikeli olabilir.
     private const int TestedSmapiMajor = 4;
+    private const string OwnershipSignature = "Jawen | SeasonPlanner | JAWEN-SP-2026-001";
 
     private ModConfig     _config  = null!;
     private BundleScanner _scanner = null!;
@@ -64,6 +65,7 @@ public sealed class ModEntry : Mod
         helper.Events.GameLoop.GameLaunched += OnGameLaunched;
 
         Monitor.Log($"Season Planner & Bundle Reminder loaded (SMAPI {smapi}).", LogLevel.Info);
+        Monitor.Log($"Ownership signature: {OwnershipSignature}", LogLevel.Trace);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)

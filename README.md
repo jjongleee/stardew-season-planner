@@ -6,7 +6,7 @@
 
 [![SMAPI](https://img.shields.io/badge/SMAPI-5%2B-2b8a3e)](https://smapi.io)
 [![Stardew Valley](https://img.shields.io/badge/Stardew%20Valley-1.6%2B-8a4b2b)](https://www.stardewvalley.net/)
-[![License](https://img.shields.io/badge/License-MIT-1f6feb)](LICENSE)
+[![License](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-1f6feb)](LICENSE)
 
 ---
 
@@ -119,7 +119,9 @@ Contributions are welcome! Feel free to fork, fix, and submit a PR. Please keep:
 
 ## 📄 License / Lisans
 
-MIT License. See [LICENSE](LICENSE).
+This project is licensed under **CC BY-NC-ND 4.0**.
+You may use and share it with attribution, but you may not use it commercially or publish modified versions.
+See [LICENSE](LICENSE).
 
 ## 🧾 Changelog / Degisim Gunlugu
 

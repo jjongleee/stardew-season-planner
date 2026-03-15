@@ -46,6 +46,14 @@
     <PackageReference Include="Lib.Harmony" Version="2.3.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Ownership signature stored in assembly metadata for provenance checks -->
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>SeasonPlannerSignature</_Parameter1>
+      <_Parameter2>Creator=Jawen;Project=SeasonPlanner;SignatureId=JAWEN-SP-2026-001</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
   <!-- manifest.json'ı çıktı klasörüne kopyala -->
   <ItemGroup>
     <None Update="manifest.json">
