@@ -96,17 +96,13 @@ public sealed class ModEntry : Mod
 
         if (!Context.IsWorldReady) return;
         var missing = _scanner.GetMissingItems(_config.FilterConstructionItems);
-        Game1.activeClickableMenu = new BundlePanelMenu(missing, _config);
+        var panel   = new BundlePanelMenu(missing, _config);
+        panel.exitFunction = () => { panel.SavePositionPublic(); Helper.WriteConfig(_config); };
+        Game1.activeClickableMenu = panel;
     }
 
     private void OnMenuChanged(object? sender, MenuChangedEventArgs e)
     {
-        if (e.OldMenu is BundlePanelMenu oldPanel && _config.RememberPanelPosition)
-        {
-            oldPanel.SavePosition();
-            Helper.WriteConfig(_config);
-        }
-
         if (e.NewMenu is StardewValley.Menus.InventoryPage
          || e.NewMenu is StardewValley.Menus.GameMenu
          || e.NewMenu is StardewValley.Menus.Billboard

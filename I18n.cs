@@ -18,6 +18,8 @@ internal static class I18n
     public static string PanelFooterHint()    => _t.Get("panel.footer_hint");
     public static string PanelItemsCount(int count) =>
         _t.Get("panel.items_count", new { count });
+    public static string PanelShowPlanned()   => _t.Get("panel.show_planned");
+    public static string PanelClearPlanned()  => _t.Get("panel.clear_planned");
 
     // ── Sekmeler ─────────────────────────────────────────────────────────
     public static string TabAll()          => _t.Get("tab.all");
@@ -103,4 +105,27 @@ internal static class I18n
     public static string GmcmPanelHotkeyTooltip()        => _t.Get("gmcm.panel_hotkey.tooltip");
     public static string GmcmRememberPanelPosition()     => _t.Get("gmcm.remember_panel_position");
     public static string GmcmRememberPanelPositionTooltip() => _t.Get("gmcm.remember_panel_position.tooltip");
+
+    // ── Panel info tooltip ────────────────────────────────────────────────
+    public static string InfoBundle()       => _t.Get("infotip.bundle");
+    public static string InfoCategory()     => _t.Get("infotip.category");
+    public static string InfoQuality()      => _t.Get("infotip.quality");
+    public static string InfoSeason()       => _t.Get("infotip.season");
+    public static string InfoGrow()         => _t.Get("infotip.grow");
+    public static string InfoLastPlant()    => _t.Get("infotip.last_plant");
+    public static string InfoDaysLeft()     => _t.Get("infotip.days_left");
+    public static string InfoLastDay()      => _t.Get("infotip.last_day");
+    public static string InfoRain()         => _t.Get("infotip.rain");
+    public static string InfoShop()         => _t.Get("infotip.shop");
+    public static string InfoPlanned()      => _t.Get("infotip.planned");
+    public static string SortUrgency()      => _t.Get("infotip.sort_urgency");
+    public static string SortName()         => _t.Get("infotip.sort_name");
+    public static string SortBundle()       => _t.Get("infotip.sort_bundle");
+    public static string SortLabel()        => _t.Get("infotip.sort_label");
+    public static string ChipMissing()      => _t.Get("infotip.missing");
+    public static string ChipUrgent()       => _t.Get("infotip.urgent");
+    public static string ChipSeasonal()     => _t.Get("infotip.seasonal");
+    public static string ChipPlanned()      => _t.Get("infotip.planned_count");
+    public static string PlanBtn()          => _t.Get("infotip.plan_btn");
+    public static string PlannedBtn()       => _t.Get("infotip.planned_btn");
 }

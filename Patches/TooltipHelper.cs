@@ -91,8 +91,8 @@ internal static class TooltipHelper
 
     private static void DrawBox(SpriteBatch b, List<(string text, Color color)> lines, int x, int y)
     {
-        const int padding    = 12;
-        const int lineHeight = 26;
+        const int padding = 12;
+        int lineHeight    = (int)Game1.smallFont.MeasureString("A").Y + 6;
 
         int textWidth = lines.Max(l => (int)Game1.smallFont.MeasureString(l.text).X);
         int width     = textWidth + padding * 2;
@@ -100,57 +100,42 @@ internal static class TooltipHelper
 
         int mx = Game1.getMouseX();
         int my = Game1.getMouseY();
+        int sw = Game1.uiViewport.Width;
+        int sh = Game1.uiViewport.Height;
 
-        // Önce farenin soluna yerleştirmeyi dene
-        x = mx - width - 12;
-        y = my + 20;
+        // Stardew'un native tooltip fare etrafında her yöne yerleşebilir.
+        // Çakışmayı önlemek için ekranı 4 bölgeye böl ve farenin karşı köşesine koy.
+        bool mouseRight  = mx > sw / 2;
+        bool mouseBottom = my > sh / 2;
 
-        // Solda yer yoksa sağa geç
-        if (x < 4) x = mx + 20;
-
-        // If a menu is open, try to avoid overlapping it (especially when menus stack).
-        if (Game1.activeClickableMenu is { } menu)
+        if (!mouseRight && !mouseBottom)
         {
-            var menuRect = new Rectangle(menu.xPositionOnScreen, menu.yPositionOnScreen, menu.width, menu.height);
-            var tooltipRect = new Rectangle(x, y, width, height);
-
-            if (tooltipRect.Intersects(menuRect))
-            {
-                // Prefer placing tooltip to the right of the menu if possible.
-                int rightX = menu.xPositionOnScreen + menu.width + 10;
-                if (rightX + width < Game1.uiViewport.Width)
-                {
-                    x = rightX;
-                    y = menu.yPositionOnScreen + 10;
-                }
-                else
-                {
-                    // Otherwise place tooltip to the left of the menu.
-                    int leftX = menu.xPositionOnScreen - width - 10;
-                    if (leftX > 0)
-                    {
-                        x = leftX;
-                        y = menu.yPositionOnScreen + 10;
-                    }
-                    else
-                    {
-                        // Fall back to top-right corner.
-                        x = Game1.uiViewport.Width - width - 10;
-                        y = 10;
-                    }
-                }
-
-                tooltipRect = new Rectangle(x, y, width, height);
-            }
+            // Fare sol-üst → bizim tooltip sağ-alt
+            x = sw - width - 8;
+            y = sh - height - 8;
+        }
+        else if (mouseRight && !mouseBottom)
+        {
+            // Fare sağ-üst → bizim tooltip sol-alt
+            x = 8;
+            y = sh - height - 8;
+        }
+        else if (!mouseRight && mouseBottom)
+        {
+            // Fare sol-alt → bizim tooltip sağ-üst
+            x = sw - width - 8;
+            y = 8;
+        }
+        else
+        {
+            // Fare sağ-alt → bizim tooltip sol-üst
+            x = 8;
+            y = 8;
         }
 
-        // Ekran alt sınırı
-        if (y + height > Game1.uiViewport.Height)
-            y = Game1.uiViewport.Height - height - 4;
-
-        // Ekran sağ sınırı
-        if (x + width > Game1.uiViewport.Width)
-            x = Game1.uiViewport.Width - width - 4;
+        // Ekran sınırlarına sabitle
+        x = Math.Clamp(x, 4, sw - width - 4);
+        y = Math.Clamp(y, 4, sh - height - 4);
 
         IClickableMenu.drawTextureBox(
             b, Game1.menuTexture,
