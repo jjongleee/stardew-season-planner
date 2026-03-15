@@ -15,13 +15,12 @@ marks last planting deadlines on your calendar, and sends smart HUD alerts — s
 
 <br/>
 
-<a href="#-türkçe">
-  <img src="https://img.shields.io/badge/🇺🇸%20English-current-4a90d9?style=flat-square" alt="English"/>
-</a>
-&nbsp;
-<a href="#-türkçe">
-  <img src="https://img.shields.io/badge/🇹🇷%20Türkçe-aşağıda%20↓-c0392b?style=flat-square" alt="Türkçe"/>
-</a>
+<table>
+  <tr>
+    <td align="center">🇺🇸&nbsp; <strong>English</strong> — you're here</td>
+    <td align="center"><a href="#-türkçe">🇹🇷&nbsp; <strong>Türkçe</strong> — aşağıda ↓</a></td>
+  </tr>
+</table>
 
 </div>
 
