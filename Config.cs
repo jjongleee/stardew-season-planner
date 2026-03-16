@@ -2,6 +2,15 @@ using StardewModdingAPI;
 
 namespace SeasonPlanner;
 
+/// <summary>Panel'in ekranda nereye sabitlendiğini belirler.</summary>
+public enum PanelAnchor
+{
+    TopLeft, TopCenter, TopRight,
+    MiddleLeft, Center, MiddleRight,
+    BottomLeft, BottomCenter, BottomRight,
+    Custom,   // Kullanıcı sürükleyerek konumlandırdı
+}
+
 public sealed class ModConfig
 {
     public bool    ShowCalendarMarkers     { get; set; } = true;
@@ -13,12 +22,12 @@ public sealed class ModConfig
     public int     CalendarWarningDaysLeft { get; set; } = 7;
     public SButton PanelHotkey            { get; set; } = SButton.F5;
 
-    // Panel position persistence
-    public bool RememberPanelPosition { get; set; } = true;
-    public int  PanelX                { get; set; } = -1;
-    public int  PanelY                { get; set; } = -1;
+    // Panel position
+    public bool        RememberPanelPosition { get; set; } = true;
+    public PanelAnchor PanelAnchor           { get; set; } = PanelAnchor.Center;
+    public int         PanelX                { get; set; } = -1;
+    public int         PanelY                { get; set; } = -1;
 
-    // Advanced planner: persist user-planned bundle items.
-    // Each planned item is stored as a stable key string (ItemId:BundleName:Quality:Quantity)
+    // Advanced planner
     public System.Collections.Generic.List<string> PlannedItems { get; set; } = new();
 }

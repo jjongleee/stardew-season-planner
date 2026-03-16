@@ -1,8 +1,8 @@
 {
   "Name": "Season Planner & Bundle Reminder",
   "Author": "Jawen",
-  "Version": "1.0.0",
-  "Description": "Eksik Community Center bundle'larını takip eder, son ekim günlerini takvimde işaretler ve akıllı HUD bildirimleri gösterir.",
+  "Version": "1.3.0",
+  "Description": "Eksik Community Center demetlerini takip eder, son ekim günlerini takvimde işaretler ve akıllı HUD bildirimleri gösterir.",
   "UniqueID": "Jawen.SeasonPlanner",
   "EntryDll": "SeasonPlanner.dll",
   "MinimumApiVersion": "4.1.0",

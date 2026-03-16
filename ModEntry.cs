@@ -3,6 +3,7 @@ using SeasonPlanner.Patches;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using System.Linq;
 
 namespace SeasonPlanner;
 
@@ -58,13 +59,15 @@ public sealed class ModEntry : Mod
         InventoryPagePatch.Config = _config;
         ChestPatch.Config         = _config;
 
-        helper.Events.GameLoop.SaveLoaded   += OnSaveLoaded;
-        helper.Events.GameLoop.DayStarted   += OnDayStarted;
-        helper.Events.Display.MenuChanged   += OnMenuChanged;
-        helper.Events.Input.ButtonPressed   += OnButtonPressed;
-        helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+        helper.Events.GameLoop.SaveLoaded        += OnSaveLoaded;
+        helper.Events.GameLoop.DayStarted        += OnDayStarted;
+        helper.Events.Display.MenuChanged        += OnMenuChanged;
+        helper.Events.Input.ButtonPressed        += OnButtonPressed;
+        helper.Events.GameLoop.GameLaunched      += OnGameLaunched;
+        helper.Events.Display.RenderedActiveMenu += OnRenderedActiveMenu;
+        helper.Events.Display.Rendered           += OnRendered;
 
-        Monitor.Log($"Season Planner & Bundle Reminder loaded (SMAPI {smapi}).", LogLevel.Info);
+        Monitor.Log($"Season Planner & Demet Hatırlatıcı yüklendi (SMAPI {smapi}).", LogLevel.Info);
         Monitor.Log($"Ownership signature: {OwnershipSignature}", LogLevel.Trace);
     }
 
@@ -108,10 +111,83 @@ public sealed class ModEntry : Mod
         if (e.NewMenu is StardewValley.Menus.InventoryPage
          || e.NewMenu is StardewValley.Menus.GameMenu
          || e.NewMenu is StardewValley.Menus.Billboard
-         || e.NewMenu is StardewValley.Menus.ItemGrabMenu)
+         || e.NewMenu is StardewValley.Menus.ItemGrabMenu
+         || e.NewMenu is StardewValley.Menus.ShopMenu)
         {
             PushDataToPatches();
         }
+    }
+
+    private void OnRenderedActiveMenu(object? sender, StardewModdingAPI.Events.RenderedActiveMenuEventArgs e)
+    {
+        DrawTooltipIfNeeded(e.SpriteBatch);
+    }
+
+    // ShopMenu için: tüm render bittikten sonra tooltip'i en üste çiz
+    private int _lastLogMx = -1, _lastLogMy = -1;
+
+    private void OnRendered(object? sender, StardewModdingAPI.Events.RenderedEventArgs e)
+    {
+        var menu = Game1.activeClickableMenu;
+        if (menu is not StardewValley.Menus.ShopMenu shopMenu) return;
+        if (!_config.ShowInventoryTooltips) return;
+
+        Item? hovered = shopMenu.hoveredItem as Item;
+        if (hovered is null) return;
+
+        int mx = Game1.getMouseX();
+        int my = Game1.getMouseY();
+
+        // Debug: sadece fare hareket ettiğinde ve item varken log at
+        if (mx != _lastLogMx || my != _lastLogMy)
+        {
+            _lastLogMx = mx;
+            _lastLogMy = my;
+            Monitor.Log(
+                $"[ShopTooltip] item={hovered.DisplayName} mx={mx} my={my} " +
+                $"viewport={Game1.uiViewport.Width}x{Game1.uiViewport.Height}",
+                LogLevel.Debug);
+        }
+
+        var missing = _scanner.GetMissingItems(_config.FilterConstructionItems);
+        // vanillaTooltipWidth > 0 → DrawBox ShopMenu moduna girer (farenin solu)
+        SeasonPlanner.Patches.TooltipHelper.DrawBundleTooltip(
+            e.SpriteBatch, hovered, missing, _config,
+            vanillaTooltipWidth: 1); // sadece ShopMenu modunu aktif etmek için
+    }
+
+    private void DrawTooltipIfNeeded(Microsoft.Xna.Framework.Graphics.SpriteBatch b)
+    {
+        if (!_config.ShowInventoryTooltips && !_config.ShowChestTooltips) return;
+        var menu = Game1.activeClickableMenu;
+        if (menu is null) return;
+
+        // ShopMenu kendi postfix patch'i ile çiziyor — burada çizme (çift çizim olur)
+        if (menu is StardewValley.Menus.ShopMenu) return;
+        // GameMenu içinde ShopMenu page'i varsa da atla
+        if (menu is StardewValley.Menus.GameMenu gm2 &&
+            gm2.pages.Any(p => p is StardewValley.Menus.ShopMenu)) return;
+
+        var missing = _scanner.GetMissingItems(_config.FilterConstructionItems);
+        Item? hovered = null;
+
+        if (_config.ShowInventoryTooltips
+            && menu is StardewValley.Menus.GameMenu gm
+            && gm.currentTab == StardewValley.Menus.GameMenu.inventoryTab
+            && gm.pages[StardewValley.Menus.GameMenu.inventoryTab] is StardewValley.Menus.InventoryPage invPage)
+        {
+            hovered = invPage.hoveredItem
+                   ?? invPage.inventory?.hover(Game1.getMouseX(), Game1.getMouseY(), null);
+        }
+        else if (_config.ShowChestTooltips
+            && menu is StardewValley.Menus.ItemGrabMenu igm)
+        {
+            hovered = igm.ItemsToGrabMenu?.hover(Game1.getMouseX(), Game1.getMouseY(), null)
+                   ?? igm.inventory?.hover(Game1.getMouseX(), Game1.getMouseY(), null);
+        }
+
+        if (hovered is null) return;
+        SeasonPlanner.Patches.TooltipHelper.DrawBundleTooltip(b, hovered, missing, _config);
     }
 
     private void PushDataToPatches(
@@ -209,5 +285,43 @@ public sealed class ModEntry : Mod
         gmcm.AddBoolOption(ModManifest,
             () => _config.RememberPanelPosition, v => _config.RememberPanelPosition = v,
             () => I18n.GmcmRememberPanelPosition(), () => I18n.GmcmRememberPanelPositionTooltip());
+
+        // ── Konum ayarları ────────────────────────────────────────────────
+        gmcm.AddTextOption(ModManifest,
+            getValue: () => _config.PanelAnchor.ToString(),
+            setValue: v =>
+            {
+                if (System.Enum.TryParse<PanelAnchor>(v, out var anchor))
+                {
+                    _config.PanelAnchor = anchor;
+                    if (anchor != PanelAnchor.Custom)
+                    {
+                        _config.PanelX = -1;
+                        _config.PanelY = -1;
+                    }
+                }
+            },
+            name:               () => I18n.GmcmPanelAnchor(),
+            tooltip:            () => I18n.GmcmPanelAnchorTooltip(),
+            allowedValues:      new[]
+            {
+                "TopLeft","TopCenter","TopRight",
+                "MiddleLeft","Center","MiddleRight",
+                "BottomLeft","BottomCenter","BottomRight",
+                "Custom",
+            },
+            formatAllowedValue: v => I18n.GmcmAnchorLabel(v));
+
+        gmcm.AddBoolOption(ModManifest,
+            getValue: () => false,
+            setValue: v =>
+            {
+                if (!v) return;
+                _config.PanelX      = -1;
+                _config.PanelY      = -1;
+                _config.PanelAnchor = PanelAnchor.Center;
+            },
+            name:    () => I18n.GmcmResetPosition(),
+            tooltip: () => I18n.GmcmResetPositionTooltip());
     }
 }

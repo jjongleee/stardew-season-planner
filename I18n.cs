@@ -26,6 +26,7 @@ internal static class I18n
     public static string TabCrop()         => _t.Get("tab.crop");
     public static string TabFish()         => _t.Get("tab.fish");
     public static string TabArtisan()      => _t.Get("tab.artisan");
+    public static string TabForage()       => _t.Get("tab.forage");
     public static string TabConstruction() => _t.Get("tab.construction");
     public static string TabOther()        => _t.Get("tab.other");
 
@@ -75,6 +76,7 @@ internal static class I18n
         BundleCategory.Fish         => _t.Get("category.fish"),
         BundleCategory.Artisan      => _t.Get("category.artisan"),
         BundleCategory.Construction => _t.Get("category.construction"),
+        BundleCategory.Forage       => _t.Get("category.forage"),
         _                           => _t.Get("category.other"),
     };
 
@@ -105,6 +107,11 @@ internal static class I18n
     public static string GmcmPanelHotkeyTooltip()        => _t.Get("gmcm.panel_hotkey.tooltip");
     public static string GmcmRememberPanelPosition()     => _t.Get("gmcm.remember_panel_position");
     public static string GmcmRememberPanelPositionTooltip() => _t.Get("gmcm.remember_panel_position.tooltip");
+    public static string GmcmPanelAnchor()               => _t.Get("gmcm.panel_anchor");
+    public static string GmcmPanelAnchorTooltip()        => _t.Get("gmcm.panel_anchor.tooltip");
+    public static string GmcmAnchorLabel(string key)     => _t.Get($"gmcm.anchor.{key.ToLower()}");
+    public static string GmcmResetPosition()             => _t.Get("gmcm.reset_position");
+    public static string GmcmResetPositionTooltip()      => _t.Get("gmcm.reset_position.tooltip");
 
     // ── Panel info tooltip ────────────────────────────────────────────────
     public static string InfoBundle()       => _t.Get("infotip.bundle");
@@ -138,4 +145,19 @@ internal static class I18n
     public static string SeedTooltipLastPlant(int day, int left) => _t.Get("seed.last_plant", new { day, left });
     public static string SeedTooltipLastDayPassed()              => _t.Get("seed.last_day_passed");
     public static string SeedTooltipWrongSeason()                => _t.Get("seed.wrong_season");
+    public static string SeedTooltipGreenhouseAvailable()        => _t.Get("seed.greenhouse_available");
+    public static string SeedTooltipGreenhouseLocked()           => _t.Get("seed.greenhouse_locked");
+
+    // ── Takvim legend ─────────────────────────────────────────────────────
+    public static string CalLegendUrgent() => _t.Get("cal.legend_urgent");
+    public static string CalLegendSoon()   => _t.Get("cal.legend_soon");
+    public static string CalLegendLater()  => _t.Get("cal.legend_later");
+
+    // ── Bundle adı lokalizasyonu ───────────────────────────────────────────
+    /// <summary>Bundle adını çevirir. Key bulunamazsa key'in kendisini döner.</summary>
+    public static string BundleName(string key)
+    {
+        var t = _t.Get(key);
+        return t.HasValue() ? t.ToString() : key;
+    }
 }

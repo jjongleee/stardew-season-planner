@@ -7,17 +7,13 @@ using StardewValley.Menus;
 
 namespace SeasonPlanner.Patches;
 
-/// <summary>
-/// Envanter ve sandık patch'lerinin ortak kullandığı tooltip çizim yardımcısı.
-/// </summary>
 internal static class TooltipHelper
 {
-    // Kategori renkleri
-    private static readonly Color ColorCrop         = new(34, 139, 34);   // yeşil
-    private static readonly Color ColorFish         = new(30, 100, 200);  // mavi
-    private static readonly Color ColorArtisan      = new(160, 60, 160);  // mor
-    private static readonly Color ColorConstruction = new(139, 90, 43);   // kahve
-    private static readonly Color ColorOther        = new(180, 120, 0);   // turuncu
+    private static readonly Color ColorCrop         = new(34, 139, 34);
+    private static readonly Color ColorFish         = new(30, 100, 200);
+    private static readonly Color ColorArtisan      = new(160, 60, 160);
+    private static readonly Color ColorConstruction = new(139, 90, 43);
+    private static readonly Color ColorOther        = new(180, 120, 0);
 
     internal static Color GetCategoryColor(BundleCategory cat) => cat switch
     {
@@ -28,45 +24,59 @@ internal static class TooltipHelper
         _                           => ColorOther,
     };
 
-    internal static string GetCategoryLabel(BundleCategory cat) =>
-        I18n.CategoryLabel(cat);
+    internal static string GetCategoryLabel(BundleCategory cat) => I18n.CategoryLabel(cat);
 
-    /// <summary>
-    /// Hover edilen eşyayı eksik bundle listesiyle eşleştirip tooltip çizer.
-    /// Tohum ise ekim/büyüme bilgisi de gösterir.
-    /// </summary>
     internal static void DrawBundleTooltip(
         SpriteBatch b,
         Item? hovered,
         IReadOnlyList<BundleItem> missing,
-        ModConfig config)
+        ModConfig config,
+        int vanillaTooltipWidth = 0,
+        Rectangle? vanillaRect = null)
     {
         if (!config.ShowInventoryTooltips) return;
         if (hovered is not StardewValley.Object obj) return;
 
         int itemId = obj.ParentSheetIndex;
 
-        // Tohum mu? Ekim/büyüme bilgisi göster
         bool isSeed = obj.Category == StardewValley.Object.SeedsCategory
-                   || BundleScanner.SeedToHarvest.ContainsKey(itemId);
+                   || BundleScanner.SeedToHarvest.ContainsKey(itemId)
+                   || IsCropSeed(itemId);
 
         if (isSeed)
         {
-            DrawSeedTooltip(b, itemId);
+            var (_, _, harvestId) = BundleScanner.GetCropInfoFromSeed(itemId);
+            var harvestMatches = harvestId > 0
+                ? missing.Where(bi => bi.ItemId == harvestId).ToList()
+                : new List<BundleItem>();
+            DrawSeedTooltip(b, itemId, BuildBundleLines(harvestMatches, config), vanillaTooltipWidth, vanillaRect);
             return;
         }
 
-        // Normal bundle tooltip
         var matches = missing.Where(bi => bi.ItemId == itemId).ToList();
         if (matches.Count == 0) return;
+        DrawBox(b, BuildBundleLines(matches, config), vanillaTooltipWidth, vanillaRect);
+    }
 
-        var lines  = new List<(string text, Color color)>();
+    private static bool IsCropSeed(int itemId)
+    {
+        try
+        {
+            var crops = Game1.content.Load<Dictionary<string, StardewValley.GameData.Crops.CropData>>("Data/Crops");
+            return crops.ContainsKey(itemId.ToString());
+        }
+        catch { return false; }
+    }
+
+    private static List<(string text, Color color)> BuildBundleLines(
+        List<BundleItem> matches, ModConfig config)
+    {
+        var lines = new List<(string text, Color color)>();
         bool first = true;
 
         foreach (var match in matches)
         {
             Color headerColor = GetCategoryColor(match.Category);
-
             if (!first) lines.Add(("─────────────────", new Color(150, 150, 150)));
             first = false;
 
@@ -85,11 +95,11 @@ internal static class TooltipHelper
             {
                 int lastPlant = 28 - match.GrowDays;
                 int daysLeft  = lastPlant - Game1.dayOfMonth;
-                Color deadlineColor = daysLeft <= 0 ? Color.Red
-                                    : daysLeft <= 3 ? new Color(220, 80, 0)
-                                    : daysLeft <= 7 ? new Color(200, 160, 0)
-                                    : Game1.textColor;
-                lines.Add((I18n.TooltipGrowDeadline(match.GrowDays, lastPlant), deadlineColor));
+                Color dlColor = daysLeft <= 0 ? Color.Red
+                              : daysLeft <= 3 ? new Color(220, 80, 0)
+                              : daysLeft <= 7 ? new Color(200, 160, 0)
+                              : Game1.textColor;
+                lines.Add((I18n.TooltipGrowDeadline(match.GrowDays, lastPlant), dlColor));
             }
 
             if (match.RequiresRain)
@@ -99,112 +109,131 @@ internal static class TooltipHelper
                 lines.Add((I18n.TooltipShopSource(match.ShopSource), new Color(0, 150, 100)));
         }
 
-        DrawBox(b, lines, 0, 0);
+        return lines;
     }
 
-    private static void DrawSeedTooltip(SpriteBatch b, int seedId)
+    private static void DrawSeedTooltip(SpriteBatch b, int seedId,
+        List<(string text, Color color)> bundleLines,
+        int vanillaTooltipWidth, Rectangle? vanillaRect)
     {
-        var (growDays, season, harvestId) = BundleScanner.GetCropInfoFromSeed(seedId);
-        if (growDays <= 0) return;
+        var (growDays, season, _) = BundleScanner.GetCropInfoFromSeed(seedId);
 
         string currentSeason = Game1.currentSeason?.ToLower() ?? "";
-        int today            = Game1.dayOfMonth;
-        int harvestDay       = today + growDays;
-        int lastPlantDay     = 28 - growDays;
-        int daysLeft         = lastPlantDay - today;
-
-        bool wrongSeason  = season != null && season != currentSeason;
-        bool wontFitMonth = harvestDay > 28;
+        int today        = Game1.dayOfMonth;
+        int harvestDay   = today + growDays;
+        int lastPlantDay = 28 - growDays;
+        int daysLeft     = lastPlantDay - today;
+        bool wrongSeason = season != null && season != currentSeason;
 
         var lines = new List<(string text, Color color)>();
 
-        // Başlık
-        lines.Add((I18n.SeedTooltipTitle(), new Color(80, 60, 20)));
-
-        // Büyüme süresi
-        lines.Add((I18n.SeedTooltipGrowDays(growDays), Game1.textColor));
-
-        // Mevsim
-        if (season != null)
-            lines.Add((I18n.SeedTooltipSeason(I18n.SeasonLabel(season)), Game1.textColor));
-
-        if (wrongSeason)
+        if (growDays > 0)
         {
-            // Yanlış mevsim — ekemezsin
-            lines.Add((I18n.SeedTooltipWrongSeason(), Color.Red));
-        }
-        else
-        {
-            // Bugün ekersen kaçıncı günde büyür
-            if (harvestDay <= 28)
+            lines.Add((I18n.SeedTooltipTitle(), new Color(80, 60, 20)));
+            lines.Add((I18n.SeedTooltipGrowDays(growDays), Game1.textColor));
+
+            if (season != null)
+                lines.Add((I18n.SeedTooltipSeason(I18n.SeasonLabel(season)), Game1.textColor));
+
+            if (wrongSeason)
             {
-                lines.Add((I18n.SeedTooltipHarvestDay(harvestDay), new Color(34, 139, 34)));
+                bool hasGreenhouse = Game1.player?.hasOrWillReceiveMail("ccPantry") == true
+                                  || Game1.player?.hasOrWillReceiveMail("jojaGreenhouse") == true;
+                if (!hasGreenhouse)
+                {
+                    var gh = Game1.getLocationFromName("Greenhouse");
+                    hasGreenhouse = gh != null && gh.isFarm.Value;
+                }
+                lines.Add(hasGreenhouse
+                    ? (I18n.SeedTooltipGreenhouseAvailable(), new Color(34, 139, 34))
+                    : (I18n.SeedTooltipGreenhouseLocked(), new Color(160, 80, 0)));
             }
             else
             {
-                // Bu ay yetişmez
-                lines.Add((I18n.SeedTooltipWontFit(), Color.Red));
-            }
+                lines.Add(harvestDay <= 28
+                    ? (I18n.SeedTooltipHarvestDay(harvestDay), new Color(34, 139, 34))
+                    : (I18n.SeedTooltipWontFit(), Color.Red));
 
-            // Son ekim günü
-            if (lastPlantDay >= 1)
-            {
-                Color dlColor = daysLeft <= 0 ? Color.Red
-                              : daysLeft <= 3 ? new Color(220, 80, 0)
-                              : daysLeft <= 7 ? new Color(200, 160, 0)
-                              : Game1.textColor;
-                lines.Add((daysLeft <= 0
-                    ? I18n.SeedTooltipLastDayPassed()
-                    : I18n.SeedTooltipLastPlant(lastPlantDay, daysLeft), dlColor));
+                if (lastPlantDay >= 1)
+                {
+                    Color dlColor = daysLeft <= 0 ? Color.Red
+                                  : daysLeft <= 3 ? new Color(220, 80, 0)
+                                  : daysLeft <= 7 ? new Color(200, 160, 0)
+                                  : Game1.textColor;
+                    lines.Add((daysLeft <= 0
+                        ? I18n.SeedTooltipLastDayPassed()
+                        : I18n.SeedTooltipLastPlant(lastPlantDay, daysLeft), dlColor));
+                }
             }
         }
 
-        DrawBox(b, lines, 0, 0);
+        if (bundleLines.Count > 0)
+        {
+            if (lines.Count > 0)
+                lines.Add(("─────────────────", new Color(150, 150, 150)));
+            lines.AddRange(bundleLines);
+        }
+
+        if (lines.Count == 0) return;
+        DrawBox(b, lines, vanillaTooltipWidth, vanillaRect);
     }
 
-    private static void DrawBox(SpriteBatch b, List<(string text, Color color)> lines, int x, int y)
+    /// <summary>
+    /// Tooltip kutusunu çizer.
+    /// ShopMenu modunda (isShopMenu = true):
+    ///   - Farenin soluna çizer: x = mx - width - 20
+    ///   - Sola sığmazsa sağa: x = mx + 20
+    ///   - Dikey: tooltip ortası fareye hizalı, ekran sınırına clamp
+    /// Normal modda: farenin sol-üstüne, sığmazsa sağ-altına.
+    /// </summary>
+    internal static void DrawBox(SpriteBatch b, List<(string text, Color color)> lines,
+        int vanillaTooltipWidth = 0, Rectangle? vanillaRect = null)
     {
-        const int padding = 12;
-        int lineHeight    = (int)Game1.smallFont.MeasureString("A").Y + 6;
+        const int Pad    = 12;
+        const int Margin = 8;
 
-        int textWidth = lines.Max(l => (int)Game1.smallFont.MeasureString(l.text).X);
-        int width     = textWidth + padding * 2;
-        int height    = lines.Count * lineHeight + padding * 2;
+        int lineH = (int)Game1.smallFont.MeasureString("A").Y + 6;
+        int sw    = Game1.uiViewport.Width;
+        int sh    = Game1.uiViewport.Height;
 
-        int mx = Game1.getMouseX();
-        int my = Game1.getMouseY();
-        int sw = Game1.uiViewport.Width;
-        int sh = Game1.uiViewport.Height;
+        int maxLines = Math.Max(1, ((int)(sh * 0.80f) - Margin * 2 - Pad * 2) / lineH);
+        List<(string text, Color color)> visible;
+        if (lines.Count <= maxLines)
+        {
+            visible = lines;
+        }
+        else
+        {
+            visible = new List<(string text, Color color)>(lines.Take(maxLines - 1))
+            {
+                ("▼ ...", new Color(120, 120, 120))
+            };
+        }
 
-        // Farenin üstüne, yatayda fareyle ortalanmış koy.
-        // Native tooltip farenin sağına gider → çakışmaz.
-        x = mx - width / 2;
-        y = my - height - 20;
+        int textW  = visible.Max(l => (int)Game1.smallFont.MeasureString(l.text).X);
+        int width  = Math.Min(textW + Pad * 2, sw - Margin * 2);
+        int height = visible.Count * lineH + Pad * 2;
 
-        // Üstte yer yoksa farenin altına geç
-        if (y < 4)
-            y = my + 40;
+        int x, y;
 
-        // Ekran sınırlarına sabitle
-        x = Math.Clamp(x, 4, sw - width - 4);
-        y = Math.Clamp(y, 4, sh - height - 4);
+        // Tooltip'i ekranın sol-alt köşesine sabitle
+        // Oyunun tüm tooltip'leri mouse etrafında → biz tam tersi köşeye gideriz
+        x = Margin;
+        y = sh - height - Margin;
+
+        b.Draw(Game1.staminaRect,
+            new Rectangle(x + 4, y + 4, width, height),
+            Color.Black * 0.28f);
 
         IClickableMenu.drawTextureBox(
             b, Game1.menuTexture,
             new Rectangle(0, 256, 60, 60),
             x, y, width, height,
-            Color.White, drawShadow: true
-        );
+            Color.White, drawShadow: false);
 
-        for (int i = 0; i < lines.Count; i++)
-        {
-            b.DrawString(
-                Game1.smallFont,
-                lines[i].text,
-                new Vector2(x + padding, y + padding + i * lineHeight),
-                lines[i].color
-            );
-        }
+        for (int i = 0; i < visible.Count; i++)
+            b.DrawString(Game1.smallFont, visible[i].text,
+                new Vector2(x + Pad, y + Pad + i * lineH),
+                visible[i].color);
     }
-
 }
