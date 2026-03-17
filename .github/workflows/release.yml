@@ -1,13 +1,12 @@
 name: Release
 
-# Bu workflow sadece GitHub Release oluşturur.
-# Zip dosyası yerel makinede build edilip tag ile birlikte push'lanmalıdır.
-# Nexus'a yükleme manuel yapılır.
-
 on:
   push:
     tags:
       - 'v*.*.*'
+
+permissions:
+  contents: write
 
 jobs:
   create-release:
@@ -21,25 +20,27 @@ jobs:
         id: version
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
-      - name: Check for zip in repo
-        id: zip
-        run: |
-          ZIP=$(find . -name "SeasonPlanner*.zip" -not -path "./.git/*" | head -1)
-          echo "ZIP_PATH=$ZIP" >> $GITHUB_OUTPUT
-          echo "Found zip: $ZIP"
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: "Season Planner and Bundle Reminder v${{ steps.version.outputs.VERSION }}"
+          tag_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
           body: |
-            ## Changes
-            See [README](https://github.com/devjawen/stardew-season-planner#readme) for full feature list.
+            ## Season Planner and Bundle Reminder v${{ steps.version.outputs.VERSION }}
 
-            ## Installation
-            1. Install [SMAPI](https://smapi.io)
-            2. Extract `SeasonPlanner` folder into your `Mods/` directory
+            ### Installation
+            1. Install [SMAPI 4.1+](https://smapi.io)
+            2. Download the zip below and extract `SeasonPlanner` into your `Mods/` folder
             3. Launch Stardew Valley through SMAPI
-          files: ${{ steps.zip.outputs.ZIP_PATH }}
+
+            ### Requirements
+            - Stardew Valley 1.6+
+            - SMAPI 4.1+
+            - [Generic Mod Config Menu](https://www.nexusmods.com/stardewvalley/mods/5098) (optional)
+
+            ### Full feature list
+            See the [README](https://github.com/devjawen/stardew-season-planner#readme).
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
