@@ -48,9 +48,6 @@ appsettings.Development.json
 # Ignore Visual Studio Code settings
 .vscode/
 
-# Ignore GitHub Actions workflow definitions (if you keep them locally but don't want to track them)
-.github/workflows/
-
 # SMAPI per-mod configuration and runtime artifacts
 config.json
 *.json.cache

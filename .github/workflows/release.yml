@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'   # v1.3.0, v1.4.0 gibi tag'lerde tetiklenir
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build (no deploy)
+        run: dotnet build --configuration Release /p:EnableModDeploy=false /p:EnableModZip=true
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Find zip
+        id: zip
+        run: |
+          ZIP=$(find bin/Release -name "*.zip" | head -1)
+          echo "ZIP_PATH=$ZIP" >> $GITHUB_OUTPUT
+          echo "ZIP_NAME=$(basename $ZIP)" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v${{ steps.version.outputs.VERSION }}"
+          body: "Release v${{ steps.version.outputs.VERSION }}"
+          files: ${{ steps.zip.outputs.ZIP_PATH }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to Nexus Mods
+        run: |
+          curl -X POST \
+            "https://api.nexusmods.com/v1/games/stardewvalley/mods/${{ secrets.NEXUS_MOD_ID }}/files.json" \
+            -H "apikey: ${{ secrets.NEXUS_API_KEY }}" \
+            -F "category=MAIN" \
+            -F "version=${{ steps.version.outputs.VERSION }}" \
+            -F "name=Season Planner and Bundle Reminder" \
+            -F "file=@${{ steps.zip.outputs.ZIP_PATH }};type=application/zip"
