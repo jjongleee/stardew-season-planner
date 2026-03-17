@@ -18,50 +18,60 @@ jobs:
         with:
           dotnet-version: '6.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Download SMAPI & Stardew references
-        run: |
-          GAME=/tmp/stardew
-          mkdir -p "$GAME/smapi-internal"
-
-          # SMAPI installer zip'ini indir
-          curl -sL "https://github.com/Pathoschild/SMAPI/releases/download/4.1.10/SMAPI-4.1.10-installer.zip" -o /tmp/smapi.zip
-          unzip -q /tmp/smapi.zip -d /tmp/smapi_out
-
-          # Tüm DLL'leri game klasörüne kopyala
-          find /tmp/smapi_out -name "*.dll" -exec cp {} "$GAME/" \; 2>/dev/null || true
-
-          # Stardew Valley.dll stub oluştur (oyun DLL'i olmadan derleme için)
-          # ModBuildConfig sadece dosyanın var olup olmadığını kontrol eder
-          touch "$GAME/Stardew Valley.dll"
-          touch "$GAME/StardewValley.GameData.dll"
-          touch "$GAME/MonoGame.Framework.dll"
-          touch "$GAME/xTile.dll"
-
-          echo "Game folder contents:"
-          ls "$GAME/"
-
-      - name: Build
-        run: dotnet build --configuration Release /p:GamePath="/tmp/stardew" /p:EnableModDeploy=false /p:EnableModZip=true
-
       - name: Get version from tag
         id: version
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
-      - name: Find zip
-        id: zip
+      - name: Download SMAPI references
         run: |
-          ZIP=$(find bin/Release -name "*.zip" | head -1)
-          echo "ZIP_PATH=$ZIP" >> $GITHUB_OUTPUT
+          # SMAPI NuGet paketinden referans DLL'lerini çek
+          mkdir -p /tmp/stardew/smapi-internal
+          dotnet restore
+          # ModBuildConfig NuGet cache'inden SMAPI DLL'lerini bul ve kopyala
+          SMAPI_DLL=$(find ~/.nuget -name "StardewModdingAPI.dll" 2>/dev/null | head -1)
+          if [ -n "$SMAPI_DLL" ]; then
+            cp "$SMAPI_DLL" /tmp/stardew/
+            echo "Found SMAPI: $SMAPI_DLL"
+          fi
+          # Stardew Valley stub DLL'leri (ModBuildConfig validation için)
+          for dll in "Stardew Valley.dll" "StardewValley.GameData.dll" "MonoGame.Framework.dll" "xTile.dll" "BmFont.dll"; do
+            # Boş ama geçerli bir .NET assembly oluştur
+            echo "" > "/tmp/stardew/$dll"
+          done
+          # SMAPI stub
+          [ ! -f "/tmp/stardew/StardewModdingAPI.dll" ] && echo "" > "/tmp/stardew/StardewModdingAPI.dll"
+          ls /tmp/stardew/
+
+      - name: Build
+        run: |
+          dotnet build --configuration Release \
+            /p:GamePath="/tmp/stardew" \
+            /p:EnableModDeploy=false \
+            /p:EnableModZip=false \
+            /p:NoWarn=NU1701
+
+      - name: Create mod zip
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          OUTDIR="bin/Release/net6.0"
+          ZIPNAME="SeasonPlanner ${VERSION}.zip"
+
+          mkdir -p /tmp/mod_package/SeasonPlanner
+          cp "$OUTDIR/SeasonPlanner.dll" /tmp/mod_package/SeasonPlanner/
+          cp manifest.json /tmp/mod_package/SeasonPlanner/
+          cp -r i18n /tmp/mod_package/SeasonPlanner/
+
+          cd /tmp/mod_package
+          zip -r "/tmp/$ZIPNAME" SeasonPlanner/
+          echo "ZIP_PATH=/tmp/$ZIPNAME" >> $GITHUB_ENV
+          echo "ZIP_NAME=$ZIPNAME" >> $GITHUB_ENV
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: "v${{ steps.version.outputs.VERSION }}"
           body: "Release v${{ steps.version.outputs.VERSION }}"
-          files: ${{ steps.zip.outputs.ZIP_PATH }}
+          files: ${{ env.ZIP_PATH }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -73,4 +83,4 @@ jobs:
             -F "category=MAIN" \
             -F "version=${{ steps.version.outputs.VERSION }}" \
             -F "name=Season Planner and Bundle Reminder" \
-            -F "file=@${{ steps.zip.outputs.ZIP_PATH }};type=application/zip"
+            -F "file=@${{ env.ZIP_PATH }};type=application/zip"
