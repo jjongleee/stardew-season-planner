@@ -26,13 +26,17 @@ internal static class TooltipHelper
 
     internal static string GetCategoryLabel(BundleCategory cat) => I18n.CategoryLabel(cat);
 
+    /// <summary>
+    /// hovered item için bundle tooltip çizer.
+    /// vanillaTooltipWidth: oyunun kendi tooltip'inin tahmini genişliği (px).
+    /// Sağa sığıyorsa oyunun tooltip'inin sağına, sığmıyorsa farenin soluna yerleşir.
+    /// </summary>
     internal static void DrawBundleTooltip(
         SpriteBatch b,
         Item? hovered,
         IReadOnlyList<BundleItem> missing,
         ModConfig config,
-        int vanillaTooltipWidth = 0,
-        Rectangle? vanillaRect = null)
+        int vanillaTooltipWidth = 0)
     {
         if (!config.ShowInventoryTooltips) return;
         if (hovered is not StardewValley.Object obj) return;
@@ -49,13 +53,13 @@ internal static class TooltipHelper
             var harvestMatches = harvestId > 0
                 ? missing.Where(bi => bi.ItemId == harvestId).ToList()
                 : new List<BundleItem>();
-            DrawSeedTooltip(b, itemId, BuildBundleLines(harvestMatches, config), vanillaTooltipWidth, vanillaRect);
+            DrawSeedTooltip(b, itemId, BuildBundleLines(harvestMatches, config), vanillaTooltipWidth);
             return;
         }
 
         var matches = missing.Where(bi => bi.ItemId == itemId).ToList();
         if (matches.Count == 0) return;
-        DrawBox(b, BuildBundleLines(matches, config), vanillaTooltipWidth, vanillaRect);
+        DrawBox(b, BuildBundleLines(matches, config), vanillaTooltipWidth);
     }
 
     private static bool IsCropSeed(int itemId)
@@ -113,8 +117,7 @@ internal static class TooltipHelper
     }
 
     private static void DrawSeedTooltip(SpriteBatch b, int seedId,
-        List<(string text, Color color)> bundleLines,
-        int vanillaTooltipWidth, Rectangle? vanillaRect)
+        List<(string text, Color color)> bundleLines, int vanillaTooltipWidth)
     {
         var (growDays, season, _) = BundleScanner.GetCropInfoFromSeed(seedId);
 
@@ -175,28 +178,36 @@ internal static class TooltipHelper
         }
 
         if (lines.Count == 0) return;
-        DrawBox(b, lines, vanillaTooltipWidth, vanillaRect);
+        DrawBox(b, lines, vanillaTooltipWidth);
     }
 
     /// <summary>
     /// Tooltip kutusunu çizer.
-    /// ShopMenu modunda (isShopMenu = true):
-    ///   - Farenin soluna çizer: x = mx - width - 20
-    ///   - Sola sığmazsa sağa: x = mx + 20
-    ///   - Dikey: tooltip ortası fareye hizalı, ekran sınırına clamp
-    /// Normal modda: farenin sol-üstüne, sığmazsa sağ-altına.
+    ///
+    /// Konum mantığı:
+    ///   vanillaTooltipWidth > 0 (ShopMenu):
+    ///     → Oyunun tooltip'i farenin SAĞında (mx + vanillaW).
+    ///       Bizimki farenin SOLUNA gider: x = mx - ourWidth - gap
+    ///       Sol tarafa sığmazsa (x < 0) farenin sağına, oyunun tooltip'inin sağına gider.
+    ///
+    ///   vanillaTooltipWidth = 0 (envanter/sandık):
+    ///     → Farenin soluna, sığmazsa sağına.
     /// </summary>
     internal static void DrawBox(SpriteBatch b, List<(string text, Color color)> lines,
-        int vanillaTooltipWidth = 0, Rectangle? vanillaRect = null)
+        int vanillaTooltipWidth = 0)
     {
         const int Pad    = 12;
         const int Margin = 8;
+        const int Gap    = 16; // tooltip'ler arası boşluk
 
         int lineH = (int)Game1.smallFont.MeasureString("A").Y + 6;
         int sw    = Game1.uiViewport.Width;
         int sh    = Game1.uiViewport.Height;
+        int mx    = Game1.getMouseX();
+        int my    = Game1.getMouseY();
 
         int maxLines = Math.Max(1, ((int)(sh * 0.80f) - Margin * 2 - Pad * 2) / lineH);
+
         List<(string text, Color color)> visible;
         if (lines.Count <= maxLines)
         {
@@ -216,10 +227,22 @@ internal static class TooltipHelper
 
         int x, y;
 
-        // Tooltip'i ekranın sol-alt köşesine sabitle
-        // Oyunun tüm tooltip'leri mouse etrafında → biz tam tersi köşeye gideriz
-        x = Margin;
-        y = sh - height - Margin;
+        if (vanillaTooltipWidth > 0)
+        {
+            // ShopMenu: farenin soluna çiz, sığmazsa sağına
+            int leftX = mx - width - Gap;
+            x = leftX >= Margin ? leftX : mx + Gap;
+            x = Math.Clamp(x, Margin, sw - width - Margin);
+
+            // Dikey: farenin üstüne hizala, ekran sınırına clamp
+            y = Math.Clamp(my - height - Gap, Margin, sh - height - Margin);
+        }
+        else
+        {
+            // Normal (envanter/sandık): sol-alt köşeye sabit
+            x = Margin;
+            y = sh - height - Margin;
+        }
 
         b.Draw(Game1.staminaRect,
             new Rectangle(x + 4, y + 4, width, height),

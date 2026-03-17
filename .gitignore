@@ -37,7 +37,6 @@ Thumbs.db
 # Local configuration
 local.settings.json
 appsettings.Development.json
-Directory.Build.props
 
 # Ignore generated files
 **/obj/**
@@ -57,3 +56,11 @@ config.json
 *.json.cache
 *.log
 *.tmp
+
+# Mod deploy artifacts
+/bin/Debug/
+/bin/Release/
+
+# Stardew Valley save / runtime files
+ErrorLogs/
+Logs/

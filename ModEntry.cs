@@ -123,38 +123,8 @@ public sealed class ModEntry : Mod
         DrawTooltipIfNeeded(e.SpriteBatch);
     }
 
-    // ShopMenu için: tüm render bittikten sonra tooltip'i en üste çiz
-    private int _lastLogMx = -1, _lastLogMy = -1;
-
-    private void OnRendered(object? sender, StardewModdingAPI.Events.RenderedEventArgs e)
-    {
-        var menu = Game1.activeClickableMenu;
-        if (menu is not StardewValley.Menus.ShopMenu shopMenu) return;
-        if (!_config.ShowInventoryTooltips) return;
-
-        Item? hovered = shopMenu.hoveredItem as Item;
-        if (hovered is null) return;
-
-        int mx = Game1.getMouseX();
-        int my = Game1.getMouseY();
-
-        // Debug: sadece fare hareket ettiğinde ve item varken log at
-        if (mx != _lastLogMx || my != _lastLogMy)
-        {
-            _lastLogMx = mx;
-            _lastLogMy = my;
-            Monitor.Log(
-                $"[ShopTooltip] item={hovered.DisplayName} mx={mx} my={my} " +
-                $"viewport={Game1.uiViewport.Width}x{Game1.uiViewport.Height}",
-                LogLevel.Debug);
-        }
-
-        var missing = _scanner.GetMissingItems(_config.FilterConstructionItems);
-        // vanillaTooltipWidth > 0 → DrawBox ShopMenu moduna girer (farenin solu)
-        SeasonPlanner.Patches.TooltipHelper.DrawBundleTooltip(
-            e.SpriteBatch, hovered, missing, _config,
-            vanillaTooltipWidth: 1); // sadece ShopMenu modunu aktif etmek için
-    }
+    // ShopMenu için tooltip artık ShopMenuPatch.Postfix ile çiziliyor
+    private void OnRendered(object? sender, StardewModdingAPI.Events.RenderedEventArgs e) { }
 
     private void DrawTooltipIfNeeded(Microsoft.Xna.Framework.Graphics.SpriteBatch b)
     {
@@ -197,6 +167,8 @@ public sealed class ModEntry : Mod
         CalendarPagePatch.MissingItems  = items;
         InventoryPagePatch.MissingItems = items;
         ChestPatch.MissingItems         = items;
+        ShopMenuPatch.MissingItems      = items;
+        ShopMenuPatch.Config            = _config;
     }
 
     private void CheckPlantingDeadlines(
