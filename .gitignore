@@ -37,6 +37,7 @@ Thumbs.db
 # Local configuration
 local.settings.json
 appsettings.Development.json
+Directory.Build.props
 
 # Ignore generated files
 **/obj/**
