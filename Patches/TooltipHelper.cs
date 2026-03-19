@@ -15,6 +15,9 @@ internal static class TooltipHelper
     private static readonly Color ColorConstruction = new(139, 90, 43);
     private static readonly Color ColorOther        = new(180, 120, 0);
 
+    // Safe separator — ASCII hyphens, no unicode box-drawing chars
+    private const string Separator = "- - - - - - - - - - - - - -";
+
     internal static Color GetCategoryColor(BundleCategory cat) => cat switch
     {
         BundleCategory.Crop         => ColorCrop,
@@ -25,9 +28,6 @@ internal static class TooltipHelper
     };
 
     internal static string GetCategoryLabel(BundleCategory cat) => I18n.CategoryLabel(cat);
-
-
-
 
     internal static void DrawBundleTooltip(
         SpriteBatch b,
@@ -40,6 +40,8 @@ internal static class TooltipHelper
         if (hovered is not StardewValley.Object obj) return;
 
         int itemId = obj.ParentSheetIndex;
+        float bundleScale = Math.Clamp(config.BundleTooltipScale / 100f, 0.50f, 2.00f);
+        float seedScale   = Math.Clamp(config.SeedTooltipScale   / 100f, 0.50f, 2.00f);
 
         bool isSeed = obj.Category == StardewValley.Object.SeedsCategory
                    || BundleScanner.SeedToHarvest.ContainsKey(itemId)
@@ -50,23 +52,25 @@ internal static class TooltipHelper
             var (_, _, harvestId) = BundleScanner.GetCropInfoFromSeed(itemId);
             string harvestQualified = harvestId > 0 ? $"(O){harvestId}" : string.Empty;
             var harvestMatches = harvestId > 0
-                ? missing.Where(bi => string.Equals(bi.QualifiedItemId, harvestQualified, System.StringComparison.OrdinalIgnoreCase)
+                ? missing.Where(bi => string.Equals(bi.QualifiedItemId, harvestQualified,
+                                    System.StringComparison.OrdinalIgnoreCase)
                                    || bi.ItemId == harvestId).ToList()
                 : new List<BundleItem>();
-            DrawSeedTooltip(b, itemId, BuildBundleLines(harvestMatches, config), vanillaTooltipWidth);
+            DrawSeedTooltip(b, itemId, BuildBundleLines(harvestMatches, config), vanillaTooltipWidth, seedScale, bundleScale);
             return;
         }
 
         var matches = missing.Where(bi => bi.MatchesItem(hovered)).ToList();
         if (matches.Count == 0) return;
-        DrawBox(b, BuildBundleLines(matches, config), vanillaTooltipWidth);
+        DrawBox(b, BuildBundleLines(matches, config), vanillaTooltipWidth, bundleScale);
     }
 
     private static bool IsCropSeed(int itemId)
     {
         try
         {
-            var crops = Game1.content.Load<Dictionary<string, StardewValley.GameData.Crops.CropData>>("Data/Crops");
+            var crops = Game1.content.Load<Dictionary<string,
+                StardewValley.GameData.Crops.CropData>>("Data/Crops");
             return crops.ContainsKey(itemId.ToString());
         }
         catch { return false; }
@@ -81,7 +85,7 @@ internal static class TooltipHelper
         foreach (var match in matches)
         {
             Color headerColor = GetCategoryColor(match.Category);
-            if (!first) lines.Add(("â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€", new Color(150, 150, 150)));
+            if (!first) lines.Add((Separator, new Color(150, 150, 150)));
             first = false;
 
             lines.Add((I18n.TooltipRequiredFor(match.BundleName), headerColor));
@@ -94,6 +98,8 @@ internal static class TooltipHelper
 
             if (match.Season is not null)
                 lines.Add((I18n.TooltipSeason(I18n.SeasonLabel(match.Season)), Game1.textColor));
+            else if (match.IsGreenhouse && match.GrowDays > 0)
+                lines.Add((I18n.SeedTooltipGreenhouseAvailable(), new Color(34, 139, 34)));
 
             if (match.GrowDays > 0)
             {
@@ -117,7 +123,8 @@ internal static class TooltipHelper
     }
 
     private static void DrawSeedTooltip(SpriteBatch b, int seedId,
-        List<(string text, Color color)> bundleLines, int vanillaTooltipWidth)
+        List<(string text, Color color)> bundleLines, int vanillaTooltipWidth,
+        float seedScale = 1f, float bundleScale = 1f)
     {
         var (growDays, season, _) = BundleScanner.GetCropInfoFromSeed(seedId);
 
@@ -173,36 +180,33 @@ internal static class TooltipHelper
         if (bundleLines.Count > 0)
         {
             if (lines.Count > 0)
-                lines.Add(("â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€", new Color(150, 150, 150)));
+                lines.Add((Separator, new Color(150, 150, 150)));
             lines.AddRange(bundleLines);
         }
 
         if (lines.Count == 0) return;
-        DrawBox(b, lines, vanillaTooltipWidth);
+        DrawBox(b, lines, vanillaTooltipWidth, seedScale);
     }
 
-
-
-
-
-
-
-
-
     internal static void DrawBox(SpriteBatch b, List<(string text, Color color)> lines,
-        int vanillaTooltipWidth = 0)
+        int vanillaTooltipWidth = 0, float scale = 1f)
     {
         const int Pad    = 12;
         const int Margin = 8;
         const int Gap    = 16;
 
-        int lineH = (int)Game1.smallFont.MeasureString("A").Y + 6;
-        int sw    = Game1.uiViewport.Width;
-        int sh    = Game1.uiViewport.Height;
-        int mx    = Game1.getMouseX();
-        int my    = Game1.getMouseY();
+        // scale'e göre font yüksekliği
+        float fontH = Game1.smallFont.MeasureString("A").Y * scale;
+        int lineH   = (int)fontH + (int)(6 * scale);
+        int sw      = Game1.uiViewport.Width;
+        int sh      = Game1.uiViewport.Height;
+        int mx      = Game1.getMouseX();
+        int my      = Game1.getMouseY();
 
-        int maxLines = Math.Max(1, ((int)(sh * 0.80f) - Margin * 2 - Pad * 2) / lineH);
+        int padS    = (int)(Pad * scale);
+        int marginS = Margin;
+
+        int maxLines = Math.Max(1, ((int)(sh * 0.80f) - marginS * 2 - padS * 2) / Math.Max(1, lineH));
 
         List<(string text, Color color)> visible;
         if (lines.Count <= maxLines)
@@ -213,30 +217,27 @@ internal static class TooltipHelper
         {
             visible = new List<(string text, Color color)>(lines.Take(maxLines - 1))
             {
-                ("â–¼ ...", new Color(120, 120, 120))
+                ("v ...", new Color(120, 120, 120))
             };
         }
 
-        int textW  = visible.Max(l => (int)Game1.smallFont.MeasureString(l.text).X);
-        int width  = Math.Min(textW + Pad * 2, sw - Margin * 2);
-        int height = visible.Count * lineH + Pad * 2;
+        int textW  = visible.Max(l => (int)(Game1.smallFont.MeasureString(l.text).X * scale));
+        int width  = Math.Min(textW + padS * 2, sw - marginS * 2);
+        int height = visible.Count * lineH + padS * 2;
 
         int x, y;
 
         if (vanillaTooltipWidth > 0)
         {
-
             int leftX = mx - width - Gap;
-            x = leftX >= Margin ? leftX : mx + Gap;
-            x = Math.Clamp(x, Margin, sw - width - Margin);
-
-            y = Math.Clamp(my - height - Gap, Margin, sh - height - Margin);
+            x = leftX >= marginS ? leftX : mx + Gap;
+            x = Math.Clamp(x, marginS, sw - width - marginS);
+            y = Math.Clamp(my - height - Gap, marginS, sh - height - marginS);
         }
         else
         {
-
-            x = Margin;
-            y = sh - height - Margin;
+            x = marginS;
+            y = sh - height - marginS;
         }
 
         b.Draw(Game1.staminaRect,
@@ -251,8 +252,7 @@ internal static class TooltipHelper
 
         for (int i = 0; i < visible.Count; i++)
             b.DrawString(Game1.smallFont, visible[i].text,
-                new Vector2(x + Pad, y + Pad + i * lineH),
-                visible[i].color);
+                new Vector2(x + padS, y + padS + i * lineH),
+                visible[i].color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
     }
 }
-

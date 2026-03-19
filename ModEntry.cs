@@ -116,6 +116,7 @@ public sealed class ModEntry : Mod
         if (!_config.ShowHudNotifications)
             return;
 
+        CheckCompletedPlanned(missing);
         CheckPlantingDeadlines(missing);
         CheckRainFishOpportunity(missing);
     }
@@ -220,6 +221,43 @@ public sealed class ModEntry : Mod
         TooltipHelper.DrawBundleTooltip(b, hovered, missing, _config);
     }
 
+    private void CheckCompletedPlanned(IReadOnlyList<BundleItem> missing)
+    {
+        if (_config.PlannedItems.Count == 0) return;
+
+        // Hâlâ eksik olan itemlerin key seti
+        var stillMissing = new HashSet<string>(
+            missing.Select(i => $"{i.QualifiedItemId}:{i.BundleName}:{i.Quality}:{i.Quantity}"));
+
+        var completed = new List<string>();
+        foreach (var key in _config.PlannedItems)
+        {
+            if (!stillMissing.Contains(key))
+                completed.Add(key);
+        }
+
+        foreach (var key in completed)
+        {
+            _config.PlannedItems.Remove(key);
+            // key formatı: qualifiedId:bundleName:quality:quantity
+            var parts = key.Split(':');
+            string itemName   = parts.Length > 0 ? parts[0] : key;
+            string bundleName = parts.Length > 1 ? parts[1] : string.Empty;
+
+            // İsim için missing listesinden bul, yoksa qualifiedId kullan
+            var found = missing.FirstOrDefault(i =>
+                $"{i.QualifiedItemId}:{i.BundleName}:{i.Quality}:{i.Quantity}" == key);
+            if (found is not null) { itemName = found.ItemName; bundleName = found.BundleName; }
+
+            Game1.addHUDMessage(new HUDMessage(
+                I18n.HudPlannedCompleted(itemName, bundleName),
+                HUDMessage.newQuest_type));
+        }
+
+        if (completed.Count > 0)
+            Helper.WriteConfig(_config);
+    }
+
     private void CheckPlantingDeadlines(IReadOnlyList<BundleItem> missing)
     {
         string season = Game1.currentSeason.ToLower();
@@ -303,6 +341,16 @@ public sealed class ModEntry : Mod
             () => _config.PanelScale, v => _config.PanelScale = v,
             () => I18n.GmcmPanelScale(), () => I18n.GmcmPanelScaleTooltip(),
             min: 50, max: 150, interval: 10, formatValue: v => $"{v}%");
+
+        gmcm.AddNumberOption(ModManifest,
+            () => _config.BundleTooltipScale, v => _config.BundleTooltipScale = v,
+            () => I18n.GmcmBundleTooltipScale(), () => I18n.GmcmBundleTooltipScaleTooltip(),
+            min: 50, max: 200, interval: 10, formatValue: v => $"{v}%");
+
+        gmcm.AddNumberOption(ModManifest,
+            () => _config.SeedTooltipScale, v => _config.SeedTooltipScale = v,
+            () => I18n.GmcmSeedTooltipScale(), () => I18n.GmcmSeedTooltipScaleTooltip(),
+            min: 50, max: 200, interval: 10, formatValue: v => $"{v}%");
 
         gmcm.AddNumberOption(ModManifest,
             () => _config.CalendarWarningDaysLeft, v => _config.CalendarWarningDaysLeft = v,

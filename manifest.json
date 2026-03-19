@@ -29,6 +29,30 @@
     {
       "UniqueID": "Pathoschild.ContentPatcher",
       "IsRequired": false
+    },
+    {
+      "UniqueID": "FlashShifter.StardewValleyExpanded",
+      "IsRequired": false
+    },
+    {
+      "UniqueID": "MizuJakkaru.CornucopiaMoreCrops",
+      "IsRequired": false
+    },
+    {
+      "UniqueID": "MizuJakkaru.CornucopiaCookingRecipes",
+      "IsRequired": false
+    },
+    {
+      "UniqueID": "Bonster.BonsterCrops",
+      "IsRequired": false
+    },
+    {
+      "UniqueID": "Bonster.CulinaryDelight",
+      "IsRequired": false
+    },
+    {
+      "UniqueID": "Bonster.BetterThings",
+      "IsRequired": false
     }
   ]
 }

@@ -95,6 +95,7 @@ public sealed class BundlePanelMenu : IClickableMenu
     private readonly IReadOnlyList<BundleItem> _all;
     private readonly ModConfig?                _config;
     private readonly HashSet<string>           _planned = new();
+    private readonly HashSet<string>           _completedPlanned = new(); // planlandı + tamamlandı
     private List<BundleItem>                   _vis     = new();
 
     private int _px, _py;
@@ -202,10 +203,15 @@ public sealed class BundlePanelMenu : IClickableMenu
 
         if (config?.PlannedItems is { Count: > 0 })
         {
+            var allKeys = new HashSet<string>(_all.Select(PlanKey));
             foreach (var key in config.PlannedItems)
             {
                 BundleItem? match = _all.FirstOrDefault(i => LegacyPlanKey(i) == key);
-                _planned.Add(match is null ? key : PlanKey(match));
+                string normalKey  = match is null ? key : PlanKey(match);
+                _planned.Add(normalKey);
+                // Eğer bu key artık eksik listesinde yoksa → tamamlandı
+                if (!allKeys.Contains(normalKey))
+                    _completedPlanned.Add(normalKey);
             }
         }
 
@@ -568,6 +574,7 @@ public sealed class BundlePanelMenu : IClickableMenu
             var tags = new List<string>();
             if (item.Quality > 0)        tags.Add(I18n.QualityLabel(item.Quality));
             if (item.Season != null)     tags.Add(I18n.SeasonLabel(item.Season));
+            else if (item.IsGreenhouse && item.GrowDays > 0) tags.Add(I18n.SeedTooltipGreenhouseAvailable().Trim());
             if (item.ShopSource != null) tags.Add($"@ {item.ShopSource}");
             if (item.GrowDays > 0)       tags.Add($"{item.GrowDays}g");
             if (item.RequiresRain)       tags.Add(I18n.BadgeRain());
@@ -608,8 +615,51 @@ public sealed class BundlePanelMenu : IClickableMenu
                 new Rectangle(_lX+4, cardY+CardH-1, _lW-8, 1), CDiv*0.18f);
         }
 
+        // Tamamlanan planlanmış itemleri listenin altında göster
+        DrawCompletedPlannedRows(b);
+
         b.End();
         b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
+    }
+
+    private void DrawCompletedPlannedRows(SpriteBatch b)
+    {
+        if (_completedPlanned.Count == 0) return;
+
+        int startRow = _vis.Count - _scroll;
+        int maxRows  = VisRows;
+        if (startRow >= maxRows) return; // scroll aşağıdaysa görünmez
+
+        Color doneColor = new Color(34, 160, 34);
+        int row = startRow;
+
+        foreach (var key in _completedPlanned)
+        {
+            if (row >= maxRows) break;
+            int cardY = _lY + row * CardH;
+
+            // Soluk yeşil arka plan
+            b.Draw(Game1.staminaRect, new Rectangle(_lX, cardY, _lW, CardH), doneColor * 0.06f);
+            b.Draw(Game1.staminaRect, new Rectangle(_lX, cardY, 3, CardH), doneColor * 0.60f);
+
+            // Key: qualifiedId:bundleName:quality:quantity
+            var parts      = key.Split(':');
+            string itemDisp   = parts.Length > 0 ? parts[0].Replace("(O)", "") : key;
+            string bundleDisp = parts.Length > 1 ? parts[1] : string.Empty;
+
+            int tx = _lX + 8 + IconSz + 10;
+            b.DrawString(Game1.dialogueFont,
+                I18n.CompletedBtn() + "  " + itemDisp,
+                new Vector2(tx, cardY + 6), doneColor, 0f, Vector2.Zero, FName, SpriteEffects.None, 0f);
+
+            if (!string.IsNullOrEmpty(bundleDisp))
+                b.DrawString(Game1.dialogueFont, bundleDisp,
+                    new Vector2(tx, cardY + 30), doneColor * 0.65f, 0f, Vector2.Zero, FMid, SpriteEffects.None, 0f);
+
+            b.Draw(Game1.staminaRect,
+                new Rectangle(_lX + 4, cardY + CardH - 1, _lW - 8, 1), CDiv * 0.18f);
+            row++;
+        }
     }
 
     private void DrawScrollBar(SpriteBatch b)
@@ -657,6 +707,8 @@ public sealed class BundlePanelMenu : IClickableMenu
             lines.Add(($"{I18n.InfoQuality()}: {I18n.QualityLabel(item.Quality)}", CSub));
         if (item.Season != null)
             lines.Add(($"{I18n.InfoSeason()}: {I18n.SeasonLabel(item.Season)}", CSub));
+        else if (item.IsGreenhouse && item.GrowDays > 0)
+            lines.Add(($"{I18n.InfoSeason()}: {I18n.SeedTooltipGreenhouseAvailable().Trim()}", new Color(34, 139, 34)));
         if (item.GrowDays > 0)
         {
             int ld = 28 - item.GrowDays, dl = ld - Game1.dayOfMonth;

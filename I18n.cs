@@ -78,6 +78,8 @@ internal static class I18n
         _t.Get("hud.planting_warning", new { item, day, days, bundle });
     public static string HudRainFish(string item, string bundle) =>
         _t.Get("hud.rain_fish", new { item, bundle });
+    public static string HudPlannedCompleted(string item, string bundle) =>
+        _t.Get("hud.planned_completed", new { item, bundle });
 
     public static string GmcmCalendarMarkers()           => _t.Get("gmcm.calendar_markers");
     public static string GmcmCalendarMarkersTooltip()    => _t.Get("gmcm.calendar_markers.tooltip");
@@ -97,6 +99,10 @@ internal static class I18n
     public static string GmcmPanelHotkeyTooltip()        => _t.Get("gmcm.panel_hotkey.tooltip");
     public static string GmcmPanelScale()             => _t.Get("gmcm.panel_scale");
     public static string GmcmPanelScaleTooltip()      => _t.Get("gmcm.panel_scale.tooltip");
+    public static string GmcmBundleTooltipScale()     => _t.Get("gmcm.bundle_tooltip_scale");
+    public static string GmcmBundleTooltipScaleTooltip() => _t.Get("gmcm.bundle_tooltip_scale.tooltip");
+    public static string GmcmSeedTooltipScale()       => _t.Get("gmcm.seed_tooltip_scale");
+    public static string GmcmSeedTooltipScaleTooltip()   => _t.Get("gmcm.seed_tooltip_scale.tooltip");
     public static string GmcmRememberPanelPosition()     => _t.Get("gmcm.remember_panel_position");
     public static string GmcmRememberPanelPositionTooltip() => _t.Get("gmcm.remember_panel_position.tooltip");
     public static string GmcmPanelAnchor()               => _t.Get("gmcm.panel_anchor");
@@ -126,6 +132,7 @@ internal static class I18n
     public static string ChipPlanned()      => _t.Get("infotip.planned_count");
     public static string PlanBtn()          => _t.Get("infotip.plan_btn");
     public static string PlannedBtn()       => _t.Get("infotip.planned_btn");
+    public static string CompletedBtn()     => _t.Get("infotip.completed_btn");
 
     public static string SeedTooltipTitle()                      => _t.Get("seed.tooltip_title");
     public static string SeedTooltipGrowDays(int days)           => _t.Get("seed.grow_days", new { days });

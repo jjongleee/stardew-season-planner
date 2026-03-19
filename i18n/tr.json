@@ -47,6 +47,7 @@
   "hud.planting_today": "BUGÜN son gün! {{item}} ek — {{bundle}}",
   "hud.planting_warning": "Uyarı: {{item}} için son ekim günü {{day}}. ({{days}}g kaldı) — {{bundle}}",
   "hud.rain_fish": "☔ Yarın {{item}} için harika! — {{bundle}}",
+  "hud.planned_completed": "Tamamlandı: {{item}} — {{bundle}} demetine teslim edildi!",
 
   "gmcm.calendar_markers": "Takvim İşaretleri",
   "gmcm.calendar_markers.tooltip": "Son ekim günlerini takvimde işaretler.",
@@ -66,6 +67,10 @@
   "gmcm.panel_hotkey.tooltip": "Eksik demet listesini açan tuş.",
   "gmcm.panel_scale": "Panel Boyutu (%)",
   "gmcm.panel_scale.tooltip": "Demet panelinin boyutunu ayarlar. 100% varsayılan, 50% en küçük, 150% en büyük.",
+  "gmcm.bundle_tooltip_scale": "Demet Tooltip Boyutu (%)",
+  "gmcm.bundle_tooltip_scale.tooltip": "Envanter/sandık eşyalarında gösterilen demet bilgisi tooltip'inin boyutunu ayarlar. 100% varsayılan.",
+  "gmcm.seed_tooltip_scale": "Tohum Tooltip Boyutu (%)",
+  "gmcm.seed_tooltip_scale.tooltip": "Tohumlarda gösterilen ekim bilgisi tooltip'inin boyutunu ayarlar. 100% varsayılan.",
   "gmcm.remember_panel_position": "Panel Konumunu Hatırla",
   "gmcm.remember_panel_position.tooltip": "Panelin konumunu oturumlar arasında kaydeder.",
   "gmcm.panel_anchor": "Panel Konumu",
@@ -104,6 +109,7 @@
   "infotip.planned_count": "planlandı",
   "infotip.plan_btn": "Planla",
   "infotip.planned_btn": "Planlandı",
+  "infotip.completed_btn": "Tamam!",
 
   "seed.tooltip_title": "Ekim Bilgisi",
   "seed.grow_days": "  Büyüme: {{days}} gün",

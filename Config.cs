@@ -26,6 +26,8 @@ public sealed class ModConfig
     public int         PanelX                { get; set; } = -1;
     public int         PanelY                { get; set; } = -1;
     public int         PanelScale            { get; set; } = 100;
+    public int         BundleTooltipScale    { get; set; } = 100;
+    public int         SeedTooltipScale      { get; set; } = 100;
 
     public System.Collections.Generic.List<string> PlannedItems { get; set; } = new();
 }

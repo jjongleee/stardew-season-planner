@@ -47,6 +47,7 @@
   "hud.planting_today": "TODAY is the last day! Plant {{item}} — {{bundle}}",
   "hud.planting_warning": "Warning: Last planting day for {{item}} is day {{day}}. ({{days}}d left) — {{bundle}}",
   "hud.rain_fish": "☔ Tomorrow is great for {{item}}! — {{bundle}}",
+  "hud.planned_completed": "Completed: {{item}} delivered to {{bundle}}!",
 
   "gmcm.calendar_markers": "Calendar Markers",
   "gmcm.calendar_markers.tooltip": "Mark last planting days on the calendar.",
@@ -66,6 +67,10 @@
   "gmcm.panel_hotkey.tooltip": "Key to open the missing bundle list.",
   "gmcm.panel_scale": "Panel Size (%)",
   "gmcm.panel_scale.tooltip": "Adjust the bundle panel size. 100% is default, 50% is smallest, 150% is largest.",
+  "gmcm.bundle_tooltip_scale": "Bundle Tooltip Size (%)",
+  "gmcm.bundle_tooltip_scale.tooltip": "Adjust the size of the bundle info tooltip shown on inventory/chest items. 100% is default.",
+  "gmcm.seed_tooltip_scale": "Seed Tooltip Size (%)",
+  "gmcm.seed_tooltip_scale.tooltip": "Adjust the size of the planting info tooltip shown on seeds. 100% is default.",
   "gmcm.remember_panel_position": "Remember Panel Position",
   "gmcm.remember_panel_position.tooltip": "Keep the bundle panel in the same place between sessions.",
   "gmcm.panel_anchor": "Panel Position",
@@ -104,6 +109,7 @@
   "infotip.planned_count": "planned",
   "infotip.plan_btn": "Plan",
   "infotip.planned_btn": "Planned",
+  "infotip.completed_btn": "Done!",
 
   "seed.tooltip_title": "Planting Info",
   "seed.grow_days": "  Growth: {{days}} days",
