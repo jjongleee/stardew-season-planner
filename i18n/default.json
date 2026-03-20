@@ -19,6 +19,7 @@
   "tab.construction": "Build",
   "tab.other": "Other",
   "tab.seasonal": "Season",
+  "tab.museum": "Museum",
 
   "badge.today": "TODAY!",
   "badge.days_left": "{{days}}d left",
@@ -171,6 +172,8 @@
   "museum.tooltip_title": "Museum Donation",
   "museum.needed": "  [!] Not donated yet",
   "museum.donated": "  [Done] Already donated",
+  "museum.donated_badge": "Donated",
+  "museum.all_donated": "All museum items donated!",
   "museum.category_mineral": "  Type: Mineral",
   "museum.category_artifact": "  Type: Artifact",
   "museum.progress": "  Museum: {{donated}}/{{total}} donated",

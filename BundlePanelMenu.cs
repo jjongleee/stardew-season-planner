@@ -62,15 +62,18 @@ public sealed class BundlePanelMenu : IClickableMenu
         BundleCategory.Artisan, BundleCategory.Forage,
         BundleCategory.Construction, BundleCategory.Other,
         null, // index 7 = Sezon sekmesi (özel)
+        null, // index 8 = Müze sekmesi (özel)
     };
     private static string TabLabel(int i) => i switch
     {
         0 => I18n.TabAll(), 1 => I18n.TabCrop(), 2 => I18n.TabFish(),
         3 => I18n.TabArtisan(), 4 => I18n.TabForage(),
         5 => I18n.TabConstruction(), 6 => I18n.TabOther(),
-        _ => I18n.TabSeasonal(),
+        7 => I18n.TabSeasonal(),
+        _ => I18n.TabMuseum(),
     };
     private const int SeasonTab = 7;
+    private const int MuseumTab = 8;
     private static Color CatColor(BundleCategory? c) => c switch
     {
         BundleCategory.Crop         => CGreen,
@@ -104,8 +107,10 @@ public sealed class BundlePanelMenu : IClickableMenu
     private readonly ModConfig?                _config;
     private readonly HashSet<string>           _planned = new();
     private readonly HashSet<string>           _completedPlanned = new();
+    private readonly HashSet<string>           _plannedMuseum = new();
     private List<BundleItem>                   _vis     = new();
     private IReadOnlyList<BundleItem>          _allSeasonal = Array.Empty<BundleItem>();
+    private IReadOnlyList<BundleItem>          _allMuseum   = Array.Empty<BundleItem>();
 
     private bool _showLog;
     private int  _logScroll;
@@ -225,6 +230,12 @@ public sealed class BundlePanelMenu : IClickableMenu
             }
         }
 
+        if (config?.PlannedMuseumItems is { Count: > 0 })
+        {
+            foreach (var id in config.PlannedMuseumItems)
+                _plannedMuseum.Add(id);
+        }
+
         _barY  = _py + S(38);
         _chipY = _py + S(58);
         _sortY = _py + S(88);
@@ -260,6 +271,8 @@ public sealed class BundlePanelMenu : IClickableMenu
 
         _allSeasonal = ModEntry.Instance?.Scanner?.GetAllSeasonalItems()
                     ?? Array.Empty<BundleItem>();
+        _allMuseum   = ModEntry.Instance?.Scanner?.GetMuseumItems()
+                    ?? Array.Empty<BundleItem>();
 
         Refresh();
     }
@@ -276,6 +289,22 @@ public sealed class BundlePanelMenu : IClickableMenu
             int curDay       = Game1.dayOfMonth;
             _urgentCount  = _all.Count(i => i.GrowDays > 0 && i.Season == curSeason && (28 - i.GrowDays) - curDay <= 5);
             _seasonCount  = _allSeasonal.Count;
+            return;
+        }
+
+        if (_tab == MuseumTab)
+        {
+            var museumSrc = _allMuseum.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(_searchText))
+            {
+                string q = _searchText.Trim().ToLower();
+                museumSrc = museumSrc.Where(i => i.ItemName.ToLower().Contains(q));
+            }
+            if (_chipFilter == ChipFilter.Planned)
+                museumSrc = museumSrc.Where(i => _plannedMuseum.Contains(i.QualifiedItemId));
+            _vis = museumSrc.OrderBy(i => i.IsMuseumDonated).ThenBy(i => i.ItemName).ToList();
+            _urgentCount = 0;
+            _seasonCount = 0;
             return;
         }
 
@@ -474,6 +503,7 @@ public sealed class BundlePanelMenu : IClickableMenu
                 sel ? CInk : CSub, 0f, Vector2.Zero, FMid, SpriteEffects.None, 0f);
 
             int cnt = i == SeasonTab ? _allSeasonal.Count
+                    : i == MuseumTab ? _allMuseum.Count(m => !m.IsMuseumDonated)
                     : TabCats[i] is null ? _all.Count : _all.Count(x => x.Category == TabCats[i]);
             string cs = cnt.ToString();
             Vector2 cv = Game1.dialogueFont.MeasureString(cs) * FTiny;
@@ -632,7 +662,8 @@ public sealed class BundlePanelMenu : IClickableMenu
 
         if (_vis.Count == 0)
         {
-            string msg = _tab == 0 ? I18n.PanelAllComplete() : I18n.PanelCategoryEmpty();
+            string msg = _tab == MuseumTab ? I18n.MuseumAllDonated()
+                       : _tab == 0 ? I18n.PanelAllComplete() : I18n.PanelCategoryEmpty();
             Vector2 ms = Game1.dialogueFont.MeasureString(msg) * FMid;
             b.DrawString(Game1.dialogueFont, msg,
                 new Vector2(_lX + (_lW - ms.X)/2f, _lY + _lH/2f - ms.Y/2f),
@@ -654,14 +685,29 @@ public sealed class BundlePanelMenu : IClickableMenu
             var  item    = _vis[i];
             int  cardY   = _lY + (i - _scroll) * CardH;
             bool hov     = i == _hoverCard;
-            bool planned = _planned.Contains(PlanKey(item));
+            bool planned = _tab == MuseumTab
+                ? _plannedMuseum.Contains(item.QualifiedItemId)
+                : _planned.Contains(PlanKey(item));
 
             string badge    = string.Empty;
             Color  badgeCol = Color.Transparent;
             Color  accent   = CatColor(item.Category);
             bool   isUrgent = false, isWarn = false;
 
-            if (item.GrowDays > 0 && item.Season == season)
+            if (_tab == MuseumTab)
+            {
+                if (item.IsMuseumDonated)
+                {
+                    accent = CGreen;
+                    badge  = I18n.MuseumDonatedBadge();
+                    badgeCol = CGreen;
+                }
+                else
+                {
+                    accent = new Color(160, 100, 20);
+                }
+            }
+            else if (item.GrowDays > 0 && item.Season == season)
             {
                 int dl = (28 - item.GrowDays) - today;
                 if      (dl <= 0) { isUrgent=true; badge=I18n.BadgeToday();      badgeCol=CUrgent; accent=CUrgent; }
@@ -724,7 +770,7 @@ public sealed class BundlePanelMenu : IClickableMenu
                     Color.White, 0f, Vector2.Zero, FSmall, SpriteEffects.None, 0f);
             }
 
-            string pbl    = planned ? I18n.PlannedBtn() : I18n.PlanBtn();
+            string pbl    = planned ? I18n.PlannedBtn() : (_tab == MuseumTab && item.IsMuseumDonated ? I18n.CompletedBtn() : I18n.PlanBtn());
             float  pbScale = FSmall;
             Vector2 pbsz  = Game1.dialogueFont.MeasureString(pbl) * pbScale;
             int PBW = (int)pbsz.X + 10;
@@ -1016,6 +1062,35 @@ public sealed class BundlePanelMenu : IClickableMenu
         if (_hoverCard < 0 || _hoverCard >= _vis.Count) return;
         var item = _vis[_hoverCard];
 
+        if (_tab == MuseumTab)
+        {
+            var mlines = new List<(string text, Color col)>
+            {
+                (item.ItemName, CInk),
+                (item.BundleName, CSub),
+                (item.IsMuseumDonated ? I18n.MuseumDonated().Trim() : I18n.MuseumNeeded().Trim(),
+                 item.IsMuseumDonated ? CGreen : CUrgent),
+            };
+            if (_plannedMuseum.Contains(item.QualifiedItemId))
+                mlines.Add((I18n.InfoPlanned(), CPlanned));
+
+            const float S2 = 0.50f;
+            float maxW2  = mlines.Max(l => Game1.dialogueFont.MeasureString(l.text).X * S2);
+            float lineH2 = Game1.dialogueFont.MeasureString("A").Y * S2 + 4f;
+            int tw2 = (int)maxW2 + 24, th2 = (int)(mlines.Count * lineH2) + 20;
+            int mx2 = Game1.getMouseX(), my2 = Game1.getMouseY();
+            int tx2 = mx2 - tw2 - 16; if (tx2 < 4) tx2 = mx2 + 20;
+            int ty2 = Math.Clamp(my2 - th2/2, 4, Game1.uiViewport.Height - th2 - 4);
+            b.Draw(Game1.staminaRect, new Rectangle(tx2+3, ty2+3, tw2, th2), Color.Black*0.26f);
+            b.Draw(Game1.staminaRect, new Rectangle(tx2, ty2, tw2, th2), new Color(252, 244, 224));
+            DrawRect(b, tx2, ty2, tw2, th2, CDiv);
+            for (int i = 0; i < mlines.Count; i++)
+                b.DrawString(Game1.dialogueFont, mlines[i].text,
+                    new Vector2(tx2+12, ty2+10+i*lineH2),
+                    mlines[i].col, 0f, Vector2.Zero, S2, SpriteEffects.None, 0f);
+            return;
+        }
+
         var lines = new List<(string text, Color col)>
         {
             (item.ItemName + (item.Quantity > 1 ? $" x{item.Quantity}" : ""), CInk),
@@ -1240,8 +1315,17 @@ public sealed class BundlePanelMenu : IClickableMenu
                 int pbX = _lX+_lW-PBW-8, pbY = cardY+CardH-PBH-6;
                 if (x>=pbX && x<=pbX+PBW && y>=pbY && y<=pbY+PBH)
                 {
-                    string key = PlanKey(item);
-                    if (_planned.Contains(key)) _planned.Remove(key); else _planned.Add(key);
+                    if (_tab == MuseumTab)
+                    {
+                        string museumKey = item.QualifiedItemId;
+                        if (_plannedMuseum.Contains(museumKey)) _plannedMuseum.Remove(museumKey);
+                        else _plannedMuseum.Add(museumKey);
+                    }
+                    else
+                    {
+                        string key = PlanKey(item);
+                        if (_planned.Contains(key)) _planned.Remove(key); else _planned.Add(key);
+                    }
                     Refresh(); Game1.playSound("coin"); return;
                 }
             }
@@ -1346,6 +1430,8 @@ public sealed class BundlePanelMenu : IClickableMenu
         }
         _config.PlannedItems.Clear();
         _config.PlannedItems.AddRange(_planned);
+        _config.PlannedMuseumItems.Clear();
+        _config.PlannedMuseumItems.AddRange(_plannedMuseum);
     }
 
     public override void receiveRightClick(int x, int y, bool playSound = true) => exitThisMenu();

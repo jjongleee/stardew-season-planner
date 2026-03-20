@@ -31,6 +31,7 @@ internal static class I18n
     public static string TabConstruction() => _t.Get("tab.construction");
     public static string TabOther()        => _t.Get("tab.other");
     public static string TabSeasonal()     => _t.Get("tab.seasonal");
+    public static string TabMuseum()       => _t.Get("tab.museum");
 
     public static string BadgeToday()           => _t.Get("badge.today");
     public static string BadgeDaysLeft(int days) => _t.Get("badge.days_left", new { days });
@@ -186,6 +187,8 @@ internal static class I18n
     public static string MuseumTooltipTitle()      => _t.Get("museum.tooltip_title");
     public static string MuseumNeeded()             => _t.Get("museum.needed");
     public static string MuseumDonated()            => _t.Get("museum.donated");
+    public static string MuseumDonatedBadge()       => _t.Get("museum.donated_badge");
+    public static string MuseumAllDonated()         => _t.Get("museum.all_donated");
     public static string MuseumCategoryMineral()    => _t.Get("museum.category_mineral");
     public static string MuseumCategoryArtifact()   => _t.Get("museum.category_artifact");
     public static string MuseumProgress(int donated, int total) =>

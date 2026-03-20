@@ -29,6 +29,8 @@ public sealed class BundleItem
     public IReadOnlyList<string> FishLocations { get; init; } = Array.Empty<string>();
     public string? FishTimeRange  { get; init; }
     public string? FishWeather    { get; init; }
+    public bool    IsMuseumItem   { get; init; }
+    public bool    IsMuseumDonated { get; init; }
 
     public bool MatchesItem(Item item)
     {
@@ -269,6 +271,59 @@ public sealed class BundleScanner
         return result.OrderBy(i => string.IsNullOrEmpty(i.BundleName) ? 1 : 0)
                      .ThenBy(i => i.ItemName)
                      .ToList();
+    }
+
+    public IReadOnlyList<BundleItem> GetMuseumItems()
+    {
+        var lib = Game1.getLocationFromName("ArchaeologyHouse")
+                  as StardewValley.Locations.LibraryMuseum;
+        if (lib is null) return Array.Empty<BundleItem>();
+
+        var result = new List<BundleItem>();
+
+        Dictionary<string, StardewValley.GameData.Objects.ObjectData>? objects = null;
+        try { objects = _gameContent.Load<Dictionary<string, StardewValley.GameData.Objects.ObjectData>>("Data/Objects"); }
+        catch { return result; }
+
+        var donatedIds = new HashSet<string>(
+            lib.museumPieces.Values.Select(v => (string)v),
+            StringComparer.OrdinalIgnoreCase);
+
+        foreach (var (itemId, data) in objects)
+        {
+            if (data is null) continue;
+
+            Item? testItem = null;
+            try { testItem = ItemRegistry.Create($"(O){itemId}", 1, 0, allowNull: true); }
+            catch { }
+            if (testItem is null) continue;
+
+            bool suitable = false;
+            try { suitable = lib.isItemSuitableForDonation(testItem); }
+            catch { }
+            if (!suitable) continue;
+
+            bool donated = donatedIds.Contains(itemId);
+            bool isMineral = data.Category == StardewValley.Object.GemCategory
+                          || data.Category == StardewValley.Object.mineralsCategory;
+
+            string displayName = testItem.DisplayName ?? itemId;
+
+            result.Add(new BundleItem
+            {
+                ItemId          = int.TryParse(itemId, out int lid) ? lid : -1,
+                QualifiedItemId = $"(O){itemId}",
+                ItemName        = displayName,
+                Quantity        = 1,
+                Quality         = 0,
+                BundleName      = isMineral ? I18n.MuseumCategoryMineral().Trim() : I18n.MuseumCategoryArtifact().Trim(),
+                Category        = BundleCategory.Other,
+                IsMuseumItem    = true,
+                IsMuseumDonated = donated,
+            });
+        }
+
+        return result.OrderBy(i => i.IsMuseumDonated).ThenBy(i => i.ItemName).ToList();
     }
 
     public void Invalidate()

@@ -30,5 +30,6 @@ public sealed class ModConfig
     public int         SeedTooltipScale      { get; set; } = 100;
 
     public System.Collections.Generic.List<string> PlannedItems { get; set; } = new();
+    public System.Collections.Generic.List<string> PlannedMuseumItems { get; set; } = new();
 }
 

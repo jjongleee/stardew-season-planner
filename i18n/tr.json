@@ -19,6 +19,7 @@
   "tab.construction": "İnşaat",
   "tab.other": "Diğer",
   "tab.seasonal": "Mevsim",
+  "tab.museum": "Müze",
 
   "badge.today": "BUGÜN!",
   "badge.days_left": "{{days}}g kaldı",
@@ -171,6 +172,8 @@
   "museum.tooltip_title": "Müze Bağışı",
   "museum.needed": "  [!] Henüz bağışlanmadı",
   "museum.donated": "  [Tamam] Zaten bağışlandı",
+  "museum.donated_badge": "Bagislandi",
+  "museum.all_donated": "Tüm müze eşyaları bağışlandı!",
   "museum.category_mineral": "  Tür: Mineral",
   "museum.category_artifact": "  Tür: Artefakt",
   "museum.progress": "  Müze: {{donated}}/{{total}} bağışlandı",
