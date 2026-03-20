@@ -21,7 +21,6 @@ internal static class JunimoNoteMenuPatch
 
     private static FieldInfo? _ingredientsField;
     private static FieldInfo? _ingredientItemField;
-    private static bool _bundleFieldsResolved;
 
     [HarmonyPriority(Priority.Low)]
     private static void Postfix(JunimoNoteMenu __instance, SpriteBatch b)
@@ -37,20 +36,22 @@ internal static class JunimoNoteMenuPatch
 
     private static void ResolveBundleFields(object bundle)
     {
-        if (_bundleFieldsResolved) return;
-        _bundleFieldsResolved = true;
-
         var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
         var bundleType = bundle.GetType();
-        _ingredientsField = bundleType.GetField("ingredients", flags);
+
+        if (_ingredientsField is null)
+            _ingredientsField = bundleType.GetField("ingredients", flags);
 
         if (_ingredientsField is null) return;
-        var list = _ingredientsField.GetValue(bundle) as IList;
-        if (list is null || list.Count == 0) return;
 
-        var first = list[0];
-        if (first is not null)
-            _ingredientItemField = first.GetType().GetField("item", flags);
+        if (_ingredientItemField is null)
+        {
+            var list = _ingredientsField.GetValue(bundle) as IList;
+            if (list is null || list.Count == 0) return;
+            var first = list[0];
+            if (first is not null)
+                _ingredientItemField = first.GetType().GetField("item", flags);
+        }
     }
 
     private static Item? FindHoveredIngredient(JunimoNoteMenu menu)
