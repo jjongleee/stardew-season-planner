@@ -380,7 +380,7 @@ internal static class TooltipHelper
         if (!lib.isItemSuitableForDonation(hovered)) return;
 
         bool alreadyDonated = lib.museumPieces.Values.Any(
-            v => string.Equals(v, hovered.ItemId, StringComparison.OrdinalIgnoreCase));
+            v => string.Equals((string)v, hovered.ItemId, StringComparison.OrdinalIgnoreCase));
 
         var lines = new List<(string text, Color color)>();
         lines.Add((I18n.MuseumTooltipTitle(), new Color(120, 80, 20)));

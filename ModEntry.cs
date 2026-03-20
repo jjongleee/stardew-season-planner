@@ -240,18 +240,8 @@ public sealed class ModEntry : Mod
         }
         else if (_config.ShowInventoryTooltips && menu is StardewValley.Menus.MuseumMenu museumMenu)
         {
-            var hoveredField = museumMenu.GetType().GetField("hoveredItem",
-                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic
-                | System.Reflection.BindingFlags.Instance);
-            var museumHovered = hoveredField?.GetValue(museumMenu) as Item;
-
-            if (museumHovered is null)
-            {
-                var invField = museumMenu.GetType().GetField("inventory",
-                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                var inv = invField?.GetValue(museumMenu) as StardewValley.Menus.InventoryMenu;
-                museumHovered = inv?.hover(Game1.getMouseX(true), Game1.getMouseY(true), null);
-            }
+            var museumHovered = museumMenu.hoveredItem
+                ?? museumMenu.inventory?.hover(Game1.getMouseX(true), Game1.getMouseY(true), null);
 
             if (museumHovered is not null)
             {
