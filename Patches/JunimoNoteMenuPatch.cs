@@ -42,25 +42,49 @@ internal static class JunimoNoteMenuPatch
 
             string itemId = name.Contains(' ') ? name.Split(' ')[0] : name;
 
+            var item = TryCreateItem(itemId);
+            if (item is not null) return item;
+        }
+
+        return null;
+    }
+
+    private static Item? TryCreateItem(string itemId)
+    {
+        if (string.IsNullOrWhiteSpace(itemId)) return null;
+
+        if (itemId.StartsWith("(", System.StringComparison.Ordinal))
+        {
             try
             {
-                string qualifiedId = itemId.StartsWith("(", System.StringComparison.Ordinal)
-                    ? itemId
-                    : $"(O){itemId}";
-
-                var item = ItemRegistry.Create(qualifiedId, 1, 0, allowNull: true);
+                var item = ItemRegistry.Create(itemId, 1, 0, allowNull: true);
                 if (item is not null) return item;
             }
             catch { }
+        }
 
-            if (int.TryParse(itemId, out int legacyId) && legacyId > 0)
+        foreach (string prefix in new[] { "(O)", "(F)", "(BC)", "(W)", "(H)", "(S)" })
+        {
+            try
             {
-                try
-                {
-                    return new StardewValley.Object(itemId, 1);
-                }
-                catch { }
+                var item = ItemRegistry.Create($"{prefix}{itemId}", 1, 0, allowNull: true);
+                if (item is not null) return item;
             }
+            catch { }
+        }
+
+        try
+        {
+            var data = ItemRegistry.GetData(itemId);
+            if (data is not null)
+                return ItemRegistry.Create(data.QualifiedItemId, 1, 0, allowNull: true);
+        }
+        catch { }
+
+        if (int.TryParse(itemId, out int legacyId) && legacyId > 0)
+        {
+            try { return new StardewValley.Object(itemId, 1); }
+            catch { }
         }
 
         return null;
