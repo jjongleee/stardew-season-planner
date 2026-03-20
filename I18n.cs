@@ -183,9 +183,18 @@ internal static class I18n
 
     public static string SearchPlaceholder() => _t.Get("search.placeholder");
 
-    public static string MuseumTooltipTitle()  => _t.Get("museum.tooltip_title");
-    public static string MuseumNeeded()        => _t.Get("museum.needed");
-    public static string MuseumDonated()       => _t.Get("museum.donated");
+    public static string MuseumTooltipTitle()      => _t.Get("museum.tooltip_title");
+    public static string MuseumNeeded()             => _t.Get("museum.needed");
+    public static string MuseumDonated()            => _t.Get("museum.donated");
+    public static string MuseumCategoryMineral()    => _t.Get("museum.category_mineral");
+    public static string MuseumCategoryArtifact()   => _t.Get("museum.category_artifact");
+    public static string MuseumProgress(int donated, int total) =>
+        _t.Get("museum.progress", new { donated, total });
+    public static string MuseumSourceMine()         => _t.Get("museum.source_mine");
+    public static string MuseumSourceFishing()      => _t.Get("museum.source_fishing");
+    public static string MuseumSourceArtifactSpot() => _t.Get("museum.source_artifact_spot");
+    public static string MuseumSourcePanning()      => _t.Get("museum.source_panning");
+    public static string MuseumSourceMonster()      => _t.Get("museum.source_monster");
 
 
     public static string BundleName(string key)
