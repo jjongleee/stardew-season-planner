@@ -26,11 +26,14 @@ A SMAPI mod for Stardew Valley that tracks your Community Center progress, marks
 ## What's New in 1.4.0
 
 - **Search bar** — filter the bundle panel by item name or bundle name in real time
-- **Detailed calendar** — 7-column week layout (Mon–Sun) with item count badges on deadline days and hover tooltips showing which items are due
-- **Improved tooltip detail** — inventory, chest, and shop tooltips now show bundle info even for completed bundles (so out-of-season seeds still display correctly)
-- **Bundle cache fix** — completed slots are now tracked in the cache key, so items no longer show as "required" after being delivered
-- **SDV font compatibility** — all emoji and unsupported unicode characters replaced with ASCII-safe alternatives
-- **Full i18n** — every string goes through the translation system; no hardcoded English or Turkish text remains
+- **Detailed calendar** — 7-column week layout (Mon-Sun) with item count badges on deadline days and hover tooltips showing which items are due
+- **Community Center tooltips** — hover ingredient icons inside a bundle to see fish location, season, time range, and weather conditions
+- **Completed bundle items** — tooltips now show a green "Delivered" line for already-completed items
+- **Notification log** — review past HUD alerts inside the panel (Log tab)
+- **Mod fish support** — fish from modded locations (SVE, etc.) now show correct location and season data
+- **Bilingual SMAPI logs** — all console messages shown in both Turkish and English
+- **Bundle cache fix** — completed slots tracked correctly; no false "missing" items after delivery
+- **Full i18n** — every string goes through the translation system; no hardcoded text remains
 - **Code cleanup** — all comment lines removed from source files
 
 ---
@@ -41,11 +44,13 @@ Open the bundle panel with `F5` and see every missing Community Center item at a
 
 - **Bundle Panel** — missing items grouped by category (Crop, Fish, Artisan, Forage, Build, Other), sortable by urgency / name / bundle
 - **Search** — type to filter items or bundles instantly
-- **Calendar Markers** — last planting days highlighted directly on the in-game calendar
-- **HUD Alerts** — morning notifications for planting deadlines and rain-fish opportunities
+- **Calendar View** — 7-column week layout with deadline badges and hover tooltips
+- **HUD Alerts** — morning notifications for planting deadlines, rain-fish opportunities, and planned item completions
 - **Inventory, Chest & Shop Tooltips** — hover any item to see which bundle it belongs to
+- **Community Center Tooltips** — hover ingredient icons inside a bundle for fish location, season, time, and weather info
 - **Seed Tooltips** — hover a seed to see grow time, season, last planting day, and greenhouse info
 - **Planning** — mark items as "planned", filter to planned-only view, get notified when a planned item is completed
+- **Notification Log** — review all past HUD alerts from the current session inside the panel
 - **Responsive Layout** — panel scales to any screen size; calendar column hides on small screens
 - **Mod Compatible** — works with Content Patcher mods, SVE, Cornucopia, Bonster's Crops, and more
 
@@ -59,13 +64,17 @@ Open the bundle panel with `F5` and see every missing Community Center item at a
 
 <br/>
 
-| Bundle List | Planned Items |
+| Bundle Panel — Details | Bundle Panel — Calendar |
 |:---:|:---:|
-| ![bundlelist1](images/1.4.0/bundlelist1.jpg) | ![planned](images/1.4.0/misssingbundlelistplanned.jpg) |
+| ![details](images/1.4.0/bundlelistpaneldetails.jpg) | ![calendar](images/1.4.0/bundlelistpanelcalendar.jpg) |
 
-| Bundle List (alt view) | Inventory Tooltip |
+| Bundle Panel — Planned Items | Inventory Tooltip |
 |:---:|:---:|
-| ![bundlelist2](images/1.4.0/bundlelist2.jpg) | ![inventory](images/1.4.0/inventorytooltip.jpg) |
+| ![planned](images/1.4.0/bundlelistpanelplanned.jpg) | ![inventory](images/1.4.0/inventorytooltip.jpg) |
+
+| Community Center Tooltip | Settings (GMCM) |
+|:---:|:---:|
+| ![cc](images/1.4.0/communitycenter.jpg) | ![gmcm](images/1.4.0/genericmodmenusettings.jpg) |
 
 | Pierre's Shop | Willy's Shop | Sandy's Shop |
 |:---:|:---:|:---:|
@@ -138,7 +147,7 @@ All settings are available in-game via **Generic Mod Config Menu**, or by editin
 
 ## Mod Compatibility
 
-The mod reads `Data/Bundles`, `Data/Crops`, `Data/Shops`, and `Data/Fish` through SMAPI's content API, so any mod that patches those assets is automatically supported.
+The mod reads `Data/Bundles`, `Data/Crops`, `Data/Shops`, `Data/Fish`, and `Data/Locations` through SMAPI's content API, so any mod that patches those assets is automatically supported.
 
 Explicitly tested / declared compatible:
 
@@ -203,10 +212,13 @@ Bug reports, translations, and pull requests are welcome.
 ### 1.4.0
 - Search bar added to bundle panel (filter by item or bundle name)
 - Calendar redesigned to 7-column week layout with item count badges and hover tooltips
-- Tooltip detail improved: bundle info now shown for completed bundle items too
-- Bundle cache fix: completed slots tracked in cache key
-- All emoji and unsupported unicode characters replaced with ASCII-safe text
-- Full i18n: no hardcoded strings remain in source code
+- Community Center tooltips: hover ingredient icons to see fish location, season, time, and weather
+- Completed bundle items now show a green "Delivered" line in tooltips
+- Notification log added to bundle panel (Log tab)
+- Mod fish support: fish from modded locations now show correct data
+- Bilingual SMAPI logs (TR/EN)
+- Bundle cache fix: completed slots tracked correctly
+- Full i18n: no hardcoded strings remain
 - Source code cleanup: all comment lines removed
 
 ### 1.3.1
@@ -244,11 +256,13 @@ Stardew Valley'de Topluluk Merkezi paket ilerlemenizi takip eden, takvimde son e
 
 - **Paket Paneli** -- eksik esyalar kategoriye gore gruplandirmis (Urun, Balik, Zanaat, Toplama, Insaat, Diger)
 - **Arama** -- item veya demet adiyla aninda filtrele
-- **Takvim Isaretleri** -- son ekim gunleri oyun takviminde otomatik isaretlenir
-- **HUD Uyarilari** -- sabah bildirimleri: ekim son gunleri ve yagmur baligi firsatlari
+- **Takvim Gorunumu** -- 7 sutunlu hafta duzeni, son ekim gunlerinde badge ve hover tooltip
+- **HUD Uyarilari** -- sabah bildirimleri: ekim son gunleri, yagmur baligi firsatlari, planlanan item tamamlandi
 - **Envanter, Sandik & Magaza Tooltip** -- esyanin uzerine gelin, hangi pakete ait oldugunu gorun
+- **Topluluk Merkezi Tooltip** -- bundle icindeki malzeme ikonlarinin uzerine gelin, balik lokasyonu, mevsim, saat ve hava durumu bilgisi gorun
 - **Tohum Tooltip** -- tohumun uzerine gelin, buyume suresi, mevsim ve son ekim gunu bilgisi
 - **Planlama** -- esyalari "planlandı" olarak isaretleyin, tamamlandiginda bildirim alin
+- **Bildirim Logu** -- gecmis HUD bildirimlerini panel icindeki Log sekmesinde gorun
 - **Duyarli Arayuz** -- panel her ekran boyutuna uyum saglar
 - **Mod Uyumlu** -- SVE, Cornucopia, Bonster ve diger Content Patcher modlariyla calisir
 
@@ -256,9 +270,12 @@ Stardew Valley'de Topluluk Merkezi paket ilerlemenizi takip eden, takvimde son e
 
 - Arama cubugu eklendi
 - Takvim 7 sutunlu hafta duzenine guncellendi, badge ve hover tooltip eklendi
-- Tooltip detayi gelistirildi: tamamlanmis bundle itemlari icin de bilgi gosteriliyor
+- Topluluk Merkezi tooltip: malzeme ikonlarinin uzerinde balik lokasyonu, mevsim, saat ve hava durumu
+- Tamamlanmis bundle itemlari icin yesil "Teslim Edildi" satiri eklendi
+- Bildirim logu eklendi (panel icinde Log sekmesi)
+- Modlu balik destegi: modlu lokasyonlardaki baliklar icin dogru veri gosteriliyor
+- Iki dilli SMAPI loglari (TR/EN)
 - Bundle cache duzeltmesi
-- Emoji ve unicode karakterler ASCII ile degistirildi
 - Tum metinler i18n sistemine tasindi
 
 ### Kurulum
@@ -276,6 +293,7 @@ Stardew Valley'de Topluluk Merkezi paket ilerlemenizi takip eden, takvimde son e
 | `F5` | Paneli ac / kapat |
 | `ESC` veya sag tik | Paneli kapat |
 | Scroll | Listede gezin |
+| Sekmeye tikla | Kategoriye gore filtrele |
 | Arama kutusuna yaz | Item veya demet adiyla filtrele |
 | "Planla" butonu | Esyayi planlandı olarak isaretleyin |
 | Panel basligini surukle | Paneli tasi |
