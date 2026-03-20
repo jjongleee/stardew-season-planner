@@ -243,15 +243,11 @@ public sealed class ModEntry : Mod
             int mx = Game1.getMouseX(true);
             int my = Game1.getMouseY(true);
 
-            var museumHovered = museumMenu.hoveredItem
-                ?? museumMenu.inventory?.hover(mx, my, null);
+            Item? museumHovered = museumMenu.hoveredItem;
 
             if (museumHovered is null && museumMenu.inventory is not null)
-            {
-                mx = Game1.getMouseX();
-                my = Game1.getMouseY();
-                museumHovered = museumMenu.inventory.hover(mx, my, null);
-            }
+                museumHovered = museumMenu.inventory.getItemAt(mx, my)
+                             ?? museumMenu.inventory.getItemAt(Game1.getMouseX(), Game1.getMouseY());
 
             if (museumHovered is not null)
             {
