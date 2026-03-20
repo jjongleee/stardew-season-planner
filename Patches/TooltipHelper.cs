@@ -368,38 +368,32 @@ internal static class TooltipHelper
     internal static void DrawMuseumTooltip(
         SpriteBatch b,
         Item hovered,
-        IClickableMenu museum,
         IReadOnlyList<BundleItem> missing,
         ModConfig config)
     {
         float scale = Math.Clamp(config.BundleTooltipScale / 100f, 0.50f, 2.00f);
 
-        var museumType = museum.GetType();
-        var suitableMethod = museumType.GetMethod("isItemSuitableForDonation",
-            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-        var hasAnythingMethod = museumType.GetMethod("doesFarmerHaveAnything",
-            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+        var lib = Game1.getLocationFromName("ArchaeologyHouse")
+                  as StardewValley.Locations.LibraryMuseum;
+        if (lib is null) return;
 
-        bool suitable = suitableMethod?.Invoke(museum, new object[] { hovered }) is true;
-        if (!suitable) return;
+        if (!lib.isItemSuitableForDonation(hovered)) return;
 
-        bool needsDonation = hasAnythingMethod?.Invoke(museum, new object[] { hovered }) is true;
+        bool alreadyDonated = lib.museumPieces.Values.Any(
+            v => string.Equals(v, hovered.ItemId, StringComparison.OrdinalIgnoreCase));
 
         var lines = new List<(string text, Color color)>();
         lines.Add((I18n.MuseumTooltipTitle(), new Color(120, 80, 20)));
 
-        if (!needsDonation)
+        if (alreadyDonated)
             lines.Add((I18n.MuseumDonated(), new Color(34, 139, 34)));
         else
             lines.Add((I18n.MuseumNeeded(), new Color(220, 80, 0)));
 
         int category = hovered is StardewValley.Object o ? o.Category : 0;
-        bool isMineral  = category == StardewValley.Object.GemCategory
-                       || category == StardewValley.Object.mineralsCategory
-                       || hovered.QualifiedItemId.StartsWith("(O)", StringComparison.Ordinal)
-                          && IsMuseumMineral(hovered.ItemId);
-        bool isArtifact = category == StardewValley.Object.junkCategory
-                       || (!isMineral && suitable);
+        bool isMineral = category == StardewValley.Object.GemCategory
+                      || category == StardewValley.Object.mineralsCategory
+                      || IsMuseumMineral(hovered.ItemId);
 
         if (isMineral)
             lines.Add((I18n.MuseumCategoryMineral(), new Color(160, 80, 200)));
