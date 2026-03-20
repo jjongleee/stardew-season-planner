@@ -835,73 +835,174 @@ public sealed class BundlePanelMenu : IClickableMenu
     {
         var log = ModEntry.GetNotificationLog();
 
-        int ow = Math.Min(PW - Pad * 2, 560);
-        int oh = Math.Min(PH - HeadH - FootH - Pad * 2, 340);
+        int ow = Math.Min(PW - Pad * 2, 600);
+        int oh = Math.Min(PH - HeadH - FootH - Pad * 2, 400);
         int ox = _px + (PW - ow) / 2;
         int oy = _py + HeadH + (PH - HeadH - FootH - oh) / 2;
 
-        b.Draw(Game1.staminaRect, new Rectangle(ox + 4, oy + 4, ow, oh), Color.Black * 0.32f);
+        b.Draw(Game1.staminaRect, new Rectangle(ox + 5, oy + 5, ow, oh), Color.Black * 0.40f);
         drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
             ox, oy, ow, oh, Color.White, drawShadow: false);
         b.Draw(Game1.staminaRect, new Rectangle(ox + 6, oy + 6, ow - 12, oh - 12),
-            new Color(252, 244, 224) * 0.96f);
+            new Color(245, 236, 210) * 0.98f);
+
+        int headerH = (int)(Game1.dialogueFont.MeasureString("A").Y * FName) + 20;
+        b.Draw(Game1.staminaRect, new Rectangle(ox + 6, oy + 6, ow - 12, headerH),
+            new Color(80, 50, 20) * 0.12f);
 
         string title = I18n.PanelLogTitle();
-        Vector2 tv   = Game1.dialogueFont.MeasureString(title) * FMid;
+        Vector2 tv   = Game1.dialogueFont.MeasureString(title) * FName;
         b.DrawString(Game1.dialogueFont, title,
-            new Vector2(ox + (ow - tv.X) / 2f, oy + 10),
-            CInk, 0f, Vector2.Zero, FMid, SpriteEffects.None, 0f);
+            new Vector2(ox + Pad, oy + (headerH - tv.Y) / 2f),
+            CInk, 0f, Vector2.Zero, FName, SpriteEffects.None, 0f);
+
+        string countStr = $"({log.Count})";
+        Vector2 cv = Game1.dialogueFont.MeasureString(countStr) * FSmall;
+        b.DrawString(Game1.dialogueFont, countStr,
+            new Vector2(ox + Pad + tv.X + 8, oy + (headerH - cv.Y) / 2f),
+            CSub * 0.70f, 0f, Vector2.Zero, FSmall, SpriteEffects.None, 0f);
+
+        string closeStr = I18n.PanelLogClose();
+        Vector2 clv = Game1.dialogueFont.MeasureString(closeStr) * FSmall;
+        int clW = (int)clv.X + 16, clH = (int)clv.Y + 8;
+        int clX = ox + ow - clW - 10;
+        int clY = oy + (headerH - clH) / 2;
+        b.Draw(Game1.staminaRect, new Rectangle(clX, clY, clW, clH), CInk * 0.65f);
+        DrawRect(b, clX, clY, clW, clH, CInk * 0.90f);
+        b.DrawString(Game1.dialogueFont, closeStr,
+            new Vector2(clX + 8, clY + (clH - clv.Y) / 2f),
+            Color.White, 0f, Vector2.Zero, FSmall, SpriteEffects.None, 0f);
 
         b.Draw(Game1.staminaRect,
-            new Rectangle(ox + Pad, oy + (int)tv.Y + 14, ow - Pad * 2, 1), CDiv * 0.50f);
+            new Rectangle(ox + 6, oy + 6 + headerH, ow - 12, 1), CDiv * 0.60f);
 
-        int closeW = (int)(Game1.dialogueFont.MeasureString(I18n.PanelLogClose()).X * FSmall) + 12;
-        int closeH = (int)(Game1.dialogueFont.MeasureString("A").Y * FSmall) + 8;
-        int closeX = ox + ow - closeW - 10;
-        int closeY = oy + 8;
-        b.Draw(Game1.staminaRect, new Rectangle(closeX, closeY, closeW, closeH), CDiv * 0.35f);
-        DrawRect(b, closeX, closeY, closeW, closeH, CDiv * 0.70f);
-        b.DrawString(Game1.dialogueFont, I18n.PanelLogClose(),
-            new Vector2(closeX + 6, closeY + (closeH - Game1.dialogueFont.MeasureString("A").Y * FSmall) / 2f),
-            CSub, 0f, Vector2.Zero, FSmall, SpriteEffects.None, 0f);
+        int listPad  = 8;
+        int listTop  = oy + 6 + headerH + 2;
+        int sbW2     = 10;
+        int listW    = ow - 12 - listPad * 2 - sbW2 - 4;
+        int listH    = oh - headerH - 14;
+        int listX    = ox + 6 + listPad;
 
-        int listTop  = oy + (int)tv.Y + 20;
-        int listH    = oh - (int)tv.Y - 30;
-        float lineH  = Game1.dialogueFont.MeasureString("A").Y * FSmall + 4f;
-        int visCount = (int)(listH / lineH);
+        int cardPad  = 8;
+        int accentW  = 4;
+        float fEntry = FSmall;
+        float fSub2  = FTiny;
+        float entryLineH = Game1.dialogueFont.MeasureString("A").Y * fEntry;
+        float subLineH   = Game1.dialogueFont.MeasureString("A").Y * fSub2;
+        int   cardH2     = (int)entryLineH + (int)subLineH + cardPad * 2 + 4;
+
+        var wrappedEntries = new List<(string line1, string line2, Color accent, Color textColor)>();
+        foreach (var (msg, type) in log)
+        {
+            Color accent2 = type == HUDMessage.error_type    ? CLogPlant
+                          : type == HUDMessage.newQuest_type ? CLogQuest
+                          : CLogRain;
+            Color textCol = type == HUDMessage.error_type    ? new Color(160, 20, 20)
+                          : type == HUDMessage.newQuest_type ? new Color(20, 110, 20)
+                          : new Color(20, 80, 180);
+
+            int maxW = listW - accentW - cardPad * 2 - 4;
+            var (l1, l2) = WrapLogMessage(msg, maxW, fEntry, fSub2);
+            wrappedEntries.Add((l1, l2, accent2, textCol));
+        }
+
+        int totalCards = wrappedEntries.Count;
+        int visCards   = Math.Max(1, listH / cardH2);
+        int maxLogScr  = Math.Max(0, totalCards - visCards);
+        _logScroll = Math.Clamp(_logScroll, 0, maxLogScr);
+
+        int sbX2 = ox + ow - 6 - sbW2;
+        b.Draw(Game1.staminaRect, new Rectangle(sbX2, listTop + 2, sbW2, listH - 4), CBarBg * 0.20f);
+        DrawRect(b, sbX2, listTop + 2, sbW2, listH - 4, CDiv * 0.25f);
+        if (maxLogScr > 0)
+        {
+            int th2 = Math.Max(20, (listH - 4) * visCards / Math.Max(1, totalCards));
+            int ty2 = listTop + 2 + (int)((float)_logScroll / maxLogScr * (listH - 4 - th2));
+            b.Draw(Game1.staminaRect, new Rectangle(sbX2 + 1, ty2 + 1, sbW2 - 2, th2 - 2), CInk * 0.30f);
+            DrawRect(b, sbX2, ty2, sbW2, th2, CInk * 0.50f);
+        }
 
         if (log.Count == 0)
         {
             string empty = I18n.PanelLogEmpty();
-            Vector2 ev   = Game1.dialogueFont.MeasureString(empty) * FSmall;
+            Vector2 ev   = Game1.dialogueFont.MeasureString(empty) * fEntry;
             b.DrawString(Game1.dialogueFont, empty,
                 new Vector2(ox + (ow - ev.X) / 2f, listTop + listH / 2f - ev.Y / 2f),
-                CSub * 0.60f, 0f, Vector2.Zero, FSmall, SpriteEffects.None, 0f);
+                CSub * 0.55f, 0f, Vector2.Zero, fEntry, SpriteEffects.None, 0f);
             return;
         }
-
-        _logScroll = Math.Clamp(_logScroll, 0, Math.Max(0, log.Count - visCount));
 
         b.End();
         b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend,
             SamplerState.PointClamp, null,
             new RasterizerState { ScissorTestEnable = true });
-        b.GraphicsDevice.ScissorRectangle = new Rectangle(ox + Pad, listTop, ow - Pad * 2, listH);
+        b.GraphicsDevice.ScissorRectangle = new Rectangle(listX, listTop, listW + accentW + cardPad, listH);
 
-        for (int i = _logScroll; i < log.Count && i < _logScroll + visCount; i++)
+        for (int i = _logScroll; i < wrappedEntries.Count && i < _logScroll + visCards + 1; i++)
         {
-            var (msg, type) = log[i];
-            float iy = listTop + (i - _logScroll) * lineH;
-            Color tc = type == HUDMessage.error_type    ? CLogPlant
-                     : type == HUDMessage.newQuest_type ? CLogQuest
-                     : CInk;
-            b.DrawString(Game1.dialogueFont, msg,
-                new Vector2(ox + Pad + 4, iy),
-                tc, 0f, Vector2.Zero, FSmall, SpriteEffects.None, 0f);
+            var (l1, l2, accent2, textCol) = wrappedEntries[i];
+            int cy = listTop + (i - _logScroll) * cardH2;
+
+            bool isEven = i % 2 == 0;
+            b.Draw(Game1.staminaRect,
+                new Rectangle(listX, cy, listW + accentW + 2, cardH2),
+                isEven ? Color.White * 0.06f : Color.Black * 0.04f);
+
+            b.Draw(Game1.staminaRect,
+                new Rectangle(listX, cy + 2, accentW, cardH2 - 4), accent2 * 0.85f);
+
+            int tx2 = listX + accentW + cardPad;
+            b.DrawString(Game1.dialogueFont, l1,
+                new Vector2(tx2, cy + cardPad),
+                textCol, 0f, Vector2.Zero, fEntry, SpriteEffects.None, 0f);
+
+            if (!string.IsNullOrEmpty(l2))
+                b.DrawString(Game1.dialogueFont, l2,
+                    new Vector2(tx2 + 8, cy + cardPad + (int)entryLineH + 2),
+                    textCol * 0.65f, 0f, Vector2.Zero, fSub2, SpriteEffects.None, 0f);
+
+            if (i < wrappedEntries.Count - 1)
+                b.Draw(Game1.staminaRect,
+                    new Rectangle(listX + accentW + 2, cy + cardH2 - 1, listW - 2, 1),
+                    CDiv * 0.20f);
         }
 
         b.End();
         b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
+    }
+
+    private (string line1, string line2) WrapLogMessage(string msg, int maxPixelW, float scale1, float scale2)
+    {
+        float w1 = Game1.dialogueFont.MeasureString(msg).X * scale1;
+        if (w1 <= maxPixelW)
+            return (msg, string.Empty);
+
+        int splitAt = msg.Length;
+        while (splitAt > 1)
+        {
+            splitAt--;
+            if (Game1.dialogueFont.MeasureString(msg[..splitAt]).X * scale1 <= maxPixelW)
+            {
+                int space = msg.LastIndexOf(' ', splitAt);
+                if (space > msg.Length / 3)
+                    splitAt = space;
+                break;
+            }
+        }
+
+        string part1 = msg[..splitAt].TrimEnd();
+        string part2 = msg[splitAt..].TrimStart();
+
+        float w2 = Game1.dialogueFont.MeasureString(part2).X * scale2;
+        if (w2 > maxPixelW)
+        {
+            int cut = part2.Length;
+            while (cut > 1 && Game1.dialogueFont.MeasureString(part2[..cut] + "...").X * scale2 > maxPixelW)
+                cut--;
+            part2 = part2[..cut] + "...";
+        }
+
+        return (part1, part2);
     }
 
     private void DrawHoverTooltip(SpriteBatch b)
@@ -1036,11 +1137,14 @@ public sealed class BundlePanelMenu : IClickableMenu
         if (_showLog)
         {
             var log = ModEntry.GetNotificationLog();
-            int ow = Math.Min(PW - Pad * 2, 560);
-            int oh = Math.Min(PH - HeadH - FootH - Pad * 2, 340);
-            float lineH = Game1.dialogueFont.MeasureString("A").Y * FSmall + 4f;
-            int visCount = (int)((oh - Game1.dialogueFont.MeasureString("A").Y * FMid - 30) / lineH);
-            _logScroll = Math.Clamp(_logScroll - Math.Sign(direction), 0, Math.Max(0, log.Count - visCount));
+            int oh = Math.Min(PH - HeadH - FootH - Pad * 2, 400);
+            int headerH = (int)(Game1.dialogueFont.MeasureString("A").Y * FName) + 20;
+            int listH   = oh - headerH - 14;
+            float entryLineH = Game1.dialogueFont.MeasureString("A").Y * FSmall;
+            float subLineH   = Game1.dialogueFont.MeasureString("A").Y * FTiny;
+            int cardH2  = (int)entryLineH + (int)subLineH + 8 * 2 + 4;
+            int visCards = Math.Max(1, listH / cardH2);
+            _logScroll = Math.Clamp(_logScroll - Math.Sign(direction), 0, Math.Max(0, log.Count - visCards));
             return;
         }
         _scroll = Math.Clamp(_scroll - Math.Sign(direction), 0, MaxScr);
@@ -1057,18 +1161,18 @@ public sealed class BundlePanelMenu : IClickableMenu
         if (_showLog)
         {
             var log = ModEntry.GetNotificationLog();
-            int ow = Math.Min(PW - Pad * 2, 560);
-            int oh = Math.Min(PH - HeadH - FootH - Pad * 2, 340);
+            int ow = Math.Min(PW - Pad * 2, 600);
+            int oh = Math.Min(PH - HeadH - FootH - Pad * 2, 400);
             int ox = _px + (PW - ow) / 2;
             int oy = _py + HeadH + (PH - HeadH - FootH - oh) / 2;
 
-            float titleH = Game1.dialogueFont.MeasureString("A").Y * FMid;
-            int closeW = (int)(Game1.dialogueFont.MeasureString(I18n.PanelLogClose()).X * FSmall) + 12;
-            int closeH = (int)(Game1.dialogueFont.MeasureString("A").Y * FSmall) + 8;
-            int closeX = ox + ow - closeW - 10;
-            int closeY = oy + 8;
+            int headerH = (int)(Game1.dialogueFont.MeasureString("A").Y * FName) + 20;
+            int clW = (int)(Game1.dialogueFont.MeasureString(I18n.PanelLogClose()).X * FSmall) + 16;
+            int clH = (int)(Game1.dialogueFont.MeasureString("A").Y * FSmall) + 8;
+            int clX = ox + ow - clW - 10;
+            int clY = oy + (headerH - clH) / 2;
 
-            if (x >= closeX && x <= closeX + closeW && y >= closeY && y <= closeY + closeH)
+            if (x >= clX && x <= clX + clW && y >= clY && y <= clY + clH)
             {
                 _showLog = false;
                 Game1.playSound("smallSelect");
