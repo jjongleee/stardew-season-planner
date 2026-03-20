@@ -18,8 +18,7 @@ internal static class ShopMenuPatch
         Item? hovered = __instance.hoveredItem as Item;
         if (hovered is null) return;
 
-        var allItems = ModEntry.Instance?.Scanner?.GetAllBundleItems() ?? missingItems;
-        TooltipHelper.DrawBundleTooltip(b, hovered, allItems, config,
+        TooltipHelper.DrawBundleTooltip(b, hovered, missingItems, config,
             vanillaTooltipWidth: 1);
     }
 }

@@ -51,6 +51,8 @@ internal static class I18n
 
     public static string TooltipRequiredFor(string bundle) =>
         _t.Get("tooltip.required_for", new { bundle });
+    public static string TooltipCompletedFor(string bundle) =>
+        _t.Get("tooltip.completed_for", new { bundle });
     public static string TooltipCategoryAmount(string category, int qty) =>
         _t.Get("tooltip.category_amount", new { category, qty });
     public static string TooltipQualitySuffix(string quality) =>

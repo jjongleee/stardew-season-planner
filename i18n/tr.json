@@ -31,6 +31,7 @@
   "season.winter": "Kış",
 
   "tooltip.required_for": ">> {{bundle}} için gerekli!",
+  "tooltip.completed_for": "[Tamam] {{bundle}} demetine teslim edildi",
   "tooltip.category_amount": "  {{category}}  |  Gerekli: {{qty}}x",
   "tooltip.quality_suffix": " (Kalite {{quality}})",
   "tooltip.season": "  Mevsim: {{season}}",

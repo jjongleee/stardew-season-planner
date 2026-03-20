@@ -31,6 +31,7 @@
   "season.winter": "Winter",
 
   "tooltip.required_for": ">> Required for {{bundle}}!",
+  "tooltip.completed_for": "[Done] Delivered to {{bundle}}",
   "tooltip.category_amount": "  {{category}}  |  Need: {{qty}}x",
   "tooltip.quality_suffix": " ({{quality}})",
   "tooltip.season": "  Season: {{season}}",

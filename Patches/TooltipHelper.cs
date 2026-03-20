@@ -128,8 +128,33 @@ internal static class TooltipHelper
         }
 
         var matches = missing.Where(bi => bi.MatchesItem(hovered)).ToList();
-        if (matches.Count == 0) return;
-        DrawBox(b, BuildBundleLines(matches, config), vanillaTooltipWidth, bundleScale);
+
+        var completedMatches = new List<BundleItem>();
+        var allItems = scanner?.GetAllBundleItems();
+        if (allItems is not null)
+        {
+            var missingKeys = new HashSet<string>(
+                missing.Select(bi => $"{bi.QualifiedItemId}:{bi.BundleName}"),
+                StringComparer.OrdinalIgnoreCase);
+            completedMatches = allItems
+                .Where(bi => bi.MatchesItem(hovered)
+                          && !missingKeys.Contains($"{bi.QualifiedItemId}:{bi.BundleName}"))
+                .ToList();
+        }
+
+        if (matches.Count == 0 && completedMatches.Count == 0) return;
+
+        var lines = BuildBundleLines(matches, config);
+
+        if (completedMatches.Count > 0)
+        {
+            if (lines.Count > 0)
+                lines.Add((Separator, new Color(150, 150, 150)));
+            foreach (var comp in completedMatches)
+                lines.Add((I18n.TooltipCompletedFor(comp.BundleName), new Color(34, 139, 34)));
+        }
+
+        DrawBox(b, lines, vanillaTooltipWidth, bundleScale);
     }
 
     private static bool IsCropSeed(string qualifiedId, BundleScanner? scanner)

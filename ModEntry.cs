@@ -219,8 +219,7 @@ public sealed class ModEntry : Mod
         if (hovered is null)
             return;
 
-        var allBundleItems = Scanner?.GetAllBundleItems() ?? missing;
-        TooltipHelper.DrawBundleTooltip(b, hovered, allBundleItems, _config);
+        TooltipHelper.DrawBundleTooltip(b, hovered, missing, _config);
     }
 
     private void CheckCompletedPlanned(IReadOnlyList<BundleItem> missing)
