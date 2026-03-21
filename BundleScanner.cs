@@ -92,7 +92,7 @@ public sealed class BundleScanner
         { 372, "Krobus" }, { 766, "Krobus" },
         { 346, "Gus"    }, { 348, "Gus"    },
         { 773, "Harvey" },
-        { 745, "Gezgin SatÄ±cÄ±" }, { 433, "Gezgin SatÄ±cÄ±" },
+        { 745, "Traveling Merchant" }, { 433, "Traveling Merchant" },
     };
 
     public static readonly Dictionary<int, int> SeedToHarvest = new()
@@ -838,12 +838,24 @@ public sealed class BundleScanner
 
                 foreach (var entry in shopData.Items)
                 {
-                    string? itemId = entry?.ItemId;
-                    if (string.IsNullOrWhiteSpace(itemId)) continue;
+                    if (entry is null) continue;
 
-                    string qualified = NormalizeQualifiedItemId(itemId);
-                    if (!string.IsNullOrWhiteSpace(qualified))
-                        _shopSourceCache.TryAdd(qualified, shopName);
+                    var candidates = new List<string>();
+
+                    if (!string.IsNullOrWhiteSpace(entry.ItemId)
+                        && !entry.ItemId.StartsWith("RANDOM_ITEMS", StringComparison.OrdinalIgnoreCase)
+                        && !entry.ItemId.StartsWith("FLAVORED_ITEM", StringComparison.OrdinalIgnoreCase))
+                        candidates.Add(entry.ItemId);
+
+                    if (entry.RandomItemId is not null)
+                        candidates.AddRange(entry.RandomItemId.Where(id => !string.IsNullOrWhiteSpace(id)));
+
+                    foreach (var itemId in candidates)
+                    {
+                        string qualified = NormalizeQualifiedItemId(itemId);
+                        if (!string.IsNullOrWhiteSpace(qualified))
+                            _shopSourceCache.TryAdd(qualified, shopName);
+                    }
                 }
             }
         }
