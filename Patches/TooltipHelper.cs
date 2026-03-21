@@ -517,6 +517,8 @@ internal static class TooltipHelper
     {
         if (hovered is null) return;
 
+        if (DrawMuseumTooltip(b, hovered, missing, config)) return;
+
         var scanner = ModEntry.Instance?.Scanner;
         float scale = Math.Clamp(config.BundleTooltipScale / 100f, 0.50f, 2.00f);
 

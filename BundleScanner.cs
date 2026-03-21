@@ -670,9 +670,11 @@ public sealed class BundleScanner
                 string mappedLocation = MapLocationName(locationName);
                 if (string.IsNullOrWhiteSpace(mappedLocation))
                 {
-                    mappedLocation = !string.IsNullOrWhiteSpace(data.DisplayName)
-                        ? data.DisplayName
-                        : PrettifyLocationName(locationName);
+                    string displayName = data.DisplayName ?? string.Empty;
+                    mappedLocation = !string.IsNullOrWhiteSpace(displayName)
+                        && !displayName.TrimStart().StartsWith("[", StringComparison.Ordinal)
+                        ? displayName
+                        : string.Empty;
                 }
                 if (string.IsNullOrWhiteSpace(mappedLocation)) continue;
 
@@ -737,25 +739,39 @@ public sealed class BundleScanner
         return result.ToString().Trim();
     }
 
-    private static string MapLocationName(string locationName) => locationName.ToLower() switch
+    private static string MapLocationName(string locationName)
     {
-        "beach"             => "Ocean",
-        "forest"            => "Forest",
-        "mountain"          => "Mountain Lake",
-        "town"              => "Town",
-        "mine"              => "Mines",
-        "desert"            => "Desert",
-        "islandwest"        => "Island",
-        "islandsouth"       => "Island Ocean",
-        "islandnorth"       => "Island",
-        "islandeast"        => "Island",
-        "sewer"             => "Sewer",
-        "witchswamp"        => "Witch's Swamp",
-        "volcanodungeon"    => "Volcano",
-        "submarine"         => "Submarine",
-        "bathhouse_pool"    => "Spa",
-        _                   => string.Empty,
-    };
+        if (string.IsNullOrWhiteSpace(locationName)) return string.Empty;
+        if (locationName.TrimStart().StartsWith("[", StringComparison.Ordinal)) return string.Empty;
+
+        return locationName.ToLower() switch
+        {
+            "beach"                  => "Ocean",
+            "forest"                 => "Forest",
+            "mountain"               => "Mountain Lake",
+            "town"                   => "Town",
+            "mine"                   => "Mines",
+            "undergroundmine"        => "Mines",
+            "desert"                 => "Desert",
+            "islandwest"             => "Island",
+            "islandsouth"            => "Island Ocean",
+            "islandnorth"            => "Island",
+            "islandeast"             => "Island",
+            "islandsoutheast"        => "Island Ocean",
+            "islandsoutheastcave"    => "Island Ocean",
+            "sewer"                  => "Sewer",
+            "witchswamp"             => "Witch's Swamp",
+            "volcanodungeon"         => "Volcano",
+            "submarine"              => "Submarine",
+            "bathhouse_pool"         => "Spa",
+            "woods"                  => "Secret Woods",
+            "railroad"               => string.Empty,
+            "backwoods"              => string.Empty,
+            "buglevel"               => string.Empty,
+            "temp"                   => string.Empty,
+            _                        => string.Empty,
+        };
+    }
 
     private static List<string> ResolveAllFishKeys(string fishId)
     {
@@ -809,24 +825,39 @@ public sealed class BundleScanner
         return m == 0 ? $"{h}:00" : $"{h}:{m:D2}";
     }
 
-    private static string MapFishLocation(string loc) => loc.ToLower() switch
+    private static string MapFishLocation(string loc)
     {
-        "ocean"        => "Ocean",
-        "river"        => "River",
-        "lake"         => "Lake",
-        "forest"       => "Forest",
-        "mountain"     => "Mountain Lake",
-        "mines"        => "Mines",
-        "desert"       => "Desert",
-        "town"         => "Town",
-        "woodskip"     => "Secret Woods",
-        "submarine"    => "Submarine",
-        "witch"        => "Witch's Swamp",
-        "volcano"      => "Volcano",
-        "islandfreshwater" => "Island",
-        "islandocean"  => "Island Ocean",
-        _              => string.Empty,
-    };
+        string lower = loc.Trim().ToLower();
+
+        if (int.TryParse(lower, out _)) return string.Empty;
+        if (lower.StartsWith("[localizedtext", StringComparison.OrdinalIgnoreCase)) return string.Empty;
+
+        string mapped = lower switch
+        {
+            "ocean"                  => "Ocean",
+            "river"                  => "River",
+            "lake"                   => "Lake",
+            "freshwater"             => "River/Lake",
+            "forest"                 => "Forest",
+            "mountain"               => "Mountain Lake",
+            "mines"                  => "Mines",
+            "desert"                 => "Desert",
+            "town"                   => "Town",
+            "woodskip"               => "Secret Woods",
+            "submarine"              => "Submarine",
+            "witch"                  => "Witch's Swamp",
+            "volcano"                => "Volcano",
+            "islandfreshwater"       => "Island",
+            "islandocean"            => "Island Ocean",
+            "islandsoutheast"        => "Island Ocean",
+            "islandsoutheastcave"    => "Island Ocean",
+            "fishing game"           => string.Empty,
+            "temp"                   => string.Empty,
+            "bug land"               => string.Empty,
+            _                        => string.Empty,
+        };
+        return mapped;
+    }
 
     public (List<string> locations, string? timeRange, string? weather) GetFishInfo(string qualifiedId)
     {
@@ -838,6 +869,17 @@ public sealed class BundleScanner
 
         if (_fishInfoCache.TryGetValue(rawId, out info)) return info;
         if (_fishInfoCache.TryGetValue($"(O){rawId}", out info)) return info;
+
+        try
+        {
+            var itemData = ItemRegistry.GetData(qualifiedId);
+            if (itemData is not null)
+            {
+                if (_fishInfoCache.TryGetValue(itemData.QualifiedItemId, out info)) return info;
+                if (_fishInfoCache.TryGetValue(itemData.ItemId, out info)) return info;
+            }
+        }
+        catch { }
 
         foreach (var key in _fishInfoCache.Keys)
         {
@@ -865,6 +907,9 @@ public sealed class BundleScanner
             foreach (var (shopId, shopData) in shops)
             {
                 if (shopData?.Items is null) continue;
+                if (shopId.Contains("Festival", StringComparison.OrdinalIgnoreCase)
+                    || shopId.Contains("Feast", StringComparison.OrdinalIgnoreCase))
+                    continue;
                 string shopName = ResolveShopName(shopId);
 
                 foreach (var entry in shopData.Items)
@@ -910,6 +955,7 @@ public sealed class BundleScanner
         "IceCreamStand"         => "Alex",
         "Krobus"                => "Krobus",
         "DesertShop"            => "Sandy",
+        "DesertTrade"           => "Sandy",
         "HatMouse"              => "Hat Mouse",
         "QiGemShop"             => "Qi",
         "ResortBar"             => "Gus",

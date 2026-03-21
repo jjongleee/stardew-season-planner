@@ -5,7 +5,11 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Pipes;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SeasonPlanner;
 
@@ -13,6 +17,10 @@ public sealed class ModEntry : Mod
 {
     private const int TestedSmapiMajor = 4;
     private const string OwnershipSignature = "Jawen | SeasonPlanner | JAWEN-SP-2026-001";
+
+    private const string PipeName = "SeasonPlannerDebug";
+    private NamedPipeServerStream? _pipe;
+    private StreamWriter?          _pipeWriter;
 
     internal static ModEntry? Instance { get; private set; }
 
@@ -54,6 +62,32 @@ public sealed class ModEntry : Mod
         _config = helper.ReadConfig<ModConfig>();
         _scanner = new BundleScanner(Monitor, helper);
         I18n.Initialize(helper.Translation);
+
+        if (_config.DebugMode)
+        {
+            _pipe = new NamedPipeServerStream(PipeName, PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.None);
+
+            string scriptPath = Path.Combine(Helper.DirectoryPath, "debug_console.ps1");
+            Process.Start(new ProcessStartInfo
+            {
+                FileName        = "powershell.exe",
+                Arguments       = $"-NoProfile -ExecutionPolicy Bypass -File \"{scriptPath}\"",
+                UseShellExecute = true,
+            });
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    _pipe.WaitForConnection();
+                    _pipeWriter = new StreamWriter(_pipe) { AutoFlush = true };
+                    _pipeWriter.WriteLine("=== SeasonPlanner Debug Console ===");
+                    _pipeWriter.WriteLine("DebugMode aktif. Kayit yuklenince loglar burada gorunecek.");
+                    _pipeWriter.WriteLine();
+                }
+                catch { }
+            });
+        }
 
         var smapi = helper.ModRegistry
             .Get("SMAPI")?.Manifest.Version
@@ -124,10 +158,64 @@ public sealed class ModEntry : Mod
         return true;
     }
 
+    internal void DebugLog(string msg) 
+    {
+        if (!_config.DebugMode) return;
+        try { _pipeWriter?.WriteLine($"[SeasonPlanner] {msg}"); } catch { }
+    }
+
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
         _scanner.Invalidate();
         UpdateSharedState();
+
+        if (!_config.DebugMode) return;
+
+        for (int i = 0; i < 20 && _pipeWriter is null; i++)
+            System.Threading.Thread.Sleep(200);
+
+        DebugLog("=== SeasonPlanner Debug Mode ===");
+
+        var missing = _scanner.GetMissingItems(_config.FilterConstructionItems);
+        DebugLog($"Eksik bundle item sayisi: {missing.Count}");
+
+        var museum = _scanner.GetMuseumItems();
+        int donated = museum.Count(i => i.IsMuseumDonated);
+        DebugLog($"Muze: {donated}/{museum.Count} bagislandi");
+
+        var fishItems = missing.Where(i => i.Category == BundleCategory.Fish).ToList();
+        DebugLog($"Balik bundle item sayisi: {fishItems.Count}");
+        foreach (var f in fishItems)
+        {
+            string locs = f.FishLocations.Count > 0 ? string.Join(", ", f.FishLocations) : "(lokasyon yok)";
+            DebugLog($"  Balik: {f.ItemName} | Lokasyon: {locs} | Hava: {f.FishWeather ?? "herhangi"} | Saat: {f.FishTimeRange ?? "herhangi"}");
+        }
+
+        var shopItems = missing
+            .Where(i => i.ShopSource is not null)
+            .GroupBy(i => $"{i.QualifiedItemId}|{i.ShopSource}")
+            .Select(g => g.First())
+            .OrderBy(i => i.ShopSource)
+            .ThenBy(i => i.ItemName)
+            .ToList();
+        DebugLog($"Magazadan alinan item sayisi (tekrarsiz): {shopItems.Count}");
+        foreach (var s in shopItems)
+            DebugLog($"  Magaza: {s.ItemName} ({s.QualifiedItemId}) -> {s.ShopSource}");
+
+        var noShopItems = missing
+            .Where(i => i.ShopSource is null && i.Category != BundleCategory.Fish && i.Category != BundleCategory.Construction)
+            .GroupBy(i => i.QualifiedItemId)
+            .Select(g => g.First())
+            .OrderBy(i => i.ItemName)
+            .ToList();
+        DebugLog($"Magaza kaynagi bulunamayan item sayisi: {noShopItems.Count}");
+        foreach (var s in noShopItems)
+            DebugLog($"  Kaynak yok: {s.ItemName} ({s.QualifiedItemId}) | Kategori: {s.Category}");
+
+        var seasonal = _scanner.GetAllSeasonalItems();
+        DebugLog($"Mevsimsel item sayisi: {seasonal.Count}");
+
+        DebugLog("=== Debug bitti ===");
     }
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
@@ -220,8 +308,8 @@ public sealed class ModEntry : Mod
         if (!TryGetSharedState(out var missing, out _))
             return;
 
-        if (menu is StardewValley.Menus.MuseumMenu || menu.GetType().Name.Contains("Museum"))
-            Monitor.Log($"[MUS-DBG] active menu = {menu.GetType().FullName}", LogLevel.Debug);
+        if (_config.DebugMode && (menu is StardewValley.Menus.MuseumMenu || menu.GetType().Name.Contains("Museum")))
+            Monitor.Log($"[DBG] active menu = {menu.GetType().FullName}", LogLevel.Debug);
 
         Item? hovered = null;
         if (_config.ShowInventoryTooltips
