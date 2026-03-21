@@ -181,7 +181,7 @@ If you find an item from another mod that isn't showing correctly, open an [issu
 | Language | File | Status |
 |---|---|:---:|
 | English | `i18n/default.json` | done |
-| Turkce | `i18n/tr.json` | done |
+| Türkçe | `i18n/tr.json` | done |
 | *Your language?* | `i18n/xx.json` | open |
 
 To add a translation: copy `i18n/default.json`, rename it to your language code, translate the values, and submit a PR.
@@ -250,7 +250,7 @@ Bug reports, translations, and pull requests are welcome.
 ---
 
 <details>
-<summary><strong>Turkce</strong></summary>
+<summary><strong>Türkçe</strong></summary>
 
 <br/>
 

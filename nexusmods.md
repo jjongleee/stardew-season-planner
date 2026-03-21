@@ -196,7 +196,7 @@ The mod reads `Data/Bundles`, `Data/Crops`, `Data/Shops`, `Data/Fish`, and `Data
 | Language | File | Status |
 |---|---|:---:|
 | English | `i18n/default.json` | done |
-| Turkce | `i18n/tr.json` | done |
+| Türkçe | `i18n/tr.json` | done |
 | *Your language?* | `i18n/xx.json` | open |
 
 ---
@@ -410,7 +410,7 @@ The mod reads Data/Bundles, Data/Crops, Data/Shops, Data/Fish, and Data/Location
 
 [list]
 [*] English (default)
-[*] Turkce / Turkish (tr)
+[*] Türkçe / Turkish (tr)
 [*] Want to add your language? Copy i18n/default.json, translate the values, and submit a PR on GitHub.
 [/list]
 
