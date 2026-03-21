@@ -1,14 +1,9 @@
-using System.Collections.Generic;
-using StardewValley;
+﻿namespace SeasonPlanner.Patches;
 
-namespace SeasonPlanner.Patches;
 
-/// <summary>
-/// Tooltip çizimi ModEntry.OnRenderedActiveMenu'ye taşındı.
-/// Bu sınıf artık sadece config referansı tutar.
-/// </summary>
+
 internal static class InventoryPagePatch
 {
-    internal static IReadOnlyList<BundleItem>? MissingItems;
-    internal static ModConfig?                 Config;
+
 }
+

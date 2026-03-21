@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using StardewModdingAPI;
 
 namespace SeasonPlanner;
@@ -16,6 +16,7 @@ public interface IGenericModConfigMenuApi
         Func<int> getValue, Action<int> setValue,
         Func<string> name, Func<string>? tooltip = null,
         int? min = null, int? max = null, int? interval = null,
+        Func<int, string>? formatValue = null,
         string? fieldId = null);
 
     void AddKeybind(IManifest mod,
@@ -30,3 +31,4 @@ public interface IGenericModConfigMenuApi
         Func<string, string>? formatAllowedValue = null,
         string? fieldId = null);
 }
+

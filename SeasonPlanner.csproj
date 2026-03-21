@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AssemblyName>SeasonPlanner</AssemblyName>
     <RootNamespace>SeasonPlanner</RootNamespace>
@@ -7,60 +7,44 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
+    <NoWarn>CS9057</NoWarn>
 
-    <!-- Stardew Valley installation folder.
-         This is intentionally left unset in source control to avoid leaking local paths.
-         Set it using one of these approaches:
 
-         1) Pass the property when building:
-            dotnet build -c Release -p:GamePath="C:\\Path\\To\\Stardew Valley"
 
-         2) Set an environment variable:
-            $env:GamePath = "C:\\Path\\To\\Stardew Valley"
-
-         3) Create a local MSBuild props file (recommended):
-            - Copy `Directory.Build.props.example` to `Directory.Build.props`
-            - Edit the `<GamePath>` value to your install location.
-
-         The actual `Directory.Build.props` file is not tracked by git (ignored) so
-         your local config stays private.
-    -->
-
-    <!-- Derleme çıktısını temizler; SMAPI deploy klasörüne kopyalar -->
-    <!--
-      Only enable deployment/zip when the game path exists.
-      This prevents build failures on machines without Stardew Valley installed.
-    -->
     <EnableModDeploy Condition="Exists('$(GamePath)')">true</EnableModDeploy>
     <EnableModZip Condition="Exists('$(GamePath)')">true</EnableModZip>
 
-    <!-- Uyarıları hata olarak işle (isteğe bağlı, kalite için önerilir) -->
-    <!-- <TreatWarningsAsErrors>true</TreatWarningsAsErrors> -->
+
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- SMAPI mod build tools (required to resolve game/SMAPI references) -->
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.2" />
 
-    <!-- Harmony: Patching library -->
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
+
     <PackageReference Include="Lib.Harmony" Version="2.3.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Ownership signature stored in assembly metadata for provenance checks -->
+
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>SeasonPlannerSignature</_Parameter1>
       <_Parameter2>Creator=Jawen;Project=SeasonPlanner;SignatureId=JAWEN-SP-2026-001</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>
 
-  <!-- manifest.json'ı çıktı klasörüne kopyala -->
   <ItemGroup>
     <None Update="manifest.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="assets\**\*" Condition="Exists('assets')">
+    <None Update="i18n\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="images\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="debug_console.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 </Project>
+
